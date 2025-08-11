@@ -1,64 +1,183 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="zh-CN">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel="icon" href="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png">
+<meta charset="UTF-8">
 <title>Stephcu</title>
+<link rel="icon" href="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png">
+
 <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        a{TEXT-DECORATION:none}
-        a:hover{TEXT-DECORATION:underline}
+    /* 全屏粒子背景容器 */
+    #particles-js {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* 在内容后面 */
+        background: linear-gradient(120deg, #1d428a, #003366, #1d428a);
+        background-size: 300% 300%;
+        animation: gradientBG 10s ease infinite;
+    }
+    @keyframes gradientBG {
+        0% {background-position: 0% 50%;}
+        50% {background-position: 100% 50%;}
+        100% {background-position: 0% 50%;}
+    }
+
+    /* 液态玻璃卡片 */
+    .glass {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 40px;
+        width: 500px;
+        text-align: center;
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 1.5s ease;
+    }
+    @keyframes fadeIn {
+        from {opacity: 0; transform: translateY(20px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+
+    /* 页面布局 */
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    /* 标题 */
+    h1 {
+        font-size: 50px;
+        color: rgb(255, 199, 44);
+        margin-bottom: 20px;
+        text-shadow: 0 0 10px rgba(255,199,44,0.8);
+    }
+
+    p {
+        font-size: 20px;
+        color: #fff;
+        margin: 20px 0;
+    }
+
+    /* 链接按钮 */
+    a {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 10px 20px;
+        color: rgb(255, 199, 44);
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 199, 44, 0.5);
+    }
+    a:hover {
+        background: rgba(255, 199, 44, 0.2);
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(255,199,44,0.6);
+    }
 </style>
 </head>
-<body style="background-color:rgb(29,66,138)">
+<body>
+    <!-- 粒子背景 -->
+    <div id="particles-js"></div>
 
-<h1 style="color:rgb(255,199,44);font-size:50px;text-align:center;">
-  Hello World!
-</h1>
-  
-<p style="color:rgb(255,199,44);font-size:40px;text-align:center;">
-  Website is Under Construction
-</p>
-  
-<p style="color:rgb(255,199,44);font-size:30px;">
-  中华人民共和国教育部
-  <br>
-  <a href="http://www.moe.gov.cn/" target="_blank" style="color:rgb(255,199,44);font-size:30px;">
-    Ministry of Education of PRC
-  </a>
-</p>
+    <div class="glass">
+        <h1>Hello World!</h1>
+        <p>🚧 Website is Under Construction 🚧</p >
 
-<p style="color:rgb(255,199,44);font-size:30px;">
-  中国高等教育学生信息网
-  <br>
-  <a href="https://www.chsi.com.cn/" target="_blank" style="color:rgb(255,199,44);font-size:30px;">
-    China Higher Education Student Information and Career Center
-  </a>
-</p>
+        <p>
+            中华人民共和国教育部<br>
+            <a href=" " target="_blank">
+                Ministry of Education of PRC
+            </a >
+        </p >
 
-<p style="color:rgb(255,199,44);font-size:30px;">
-  教育部教育考试院
-  <br>
-  <a href="https://www.neea.edu.cn/" target="_blank" style="color:rgb(255,199,44);font-size:30px;">
-    National Education Examinations Authority
-  </a>
-</p>
+        <p>
+            中国高等教育学生信息网<br>
+            <a href="https://www.chsi.com.cn/" target="_blank">
+                China Higher Education Student Information and Career Center
+            </a >
+        </p >
 
-  <p style="color:rgb(255,199,44);font-size:30px;">
-  沃德尔·斯蒂芬·库里
-  <br>
-  <a href="https://www.nba.com/player/201939" target="_blank" style="color:rgb(255,199,44);font-size:30px;">
-    Wardell Stephen Curry
-  </a>
-  <br>
-  <a href="https://mp.weixin.qq.com/s?__biz=MzkwNjIwNzUxMg==&mid=2247484118&idx=1&sn=9f38f6efe69dec95b755897b1f8239f9&chksm=c0ed4aa1f79ac3b7240317f5c8ab51ba5d22cae7a64a5465530b1ac44f6397db4372fd4c6d46#rd" target="_blank" style="color:rgb(255,199,44);font-size:30px;">
-    Stephen Curry:Underrated
-  </a>
-</p>
+        <p>
+            教育部教育考试院<br>
+            <a href="https://www.neea.edu.cn/" target="_blank">
+                National Education Examinations Authority
+            </a >
+        </p >
 
-  
+        <p>
+            沃德尔·斯蒂芬·库里<br>
+            <a href="https://www.nba.com/player/201939" target="_blank">
+                Wardell Stephen Curry
+            </a ><br>
+            <a href="https://mp.weixin.qq.com/s?__biz=MzkwNjIwNzUxMg==&mid=2247484118&idx=1&sn=9f38f6efe69dec95b755897b1f8239f9&chksm=c0ed4aa1f79ac3b7240317f5c8ab51ba5d22cae7a64a5465530b1ac44f6397db4372fd4c6d46#rd" target="_blank">
+                Stephen Curry: Underrated
+            </a >
+        </p >
+    </div>
+
+    <!-- 引入粒子背景脚本 -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 60,
+                    "density": {"enable": true, "value_area": 800}
+                },
+                "color": {"value": "#ffc72c"},
+                "shape": {
+                    "type": "circle",
+                    "stroke": {"width": 0, "color": "#000"},
+                },
+                "opacity": {
+                    "value": 0.5,
+                    "random": false
+                },
+                "size": {
+                    "value": 4,
+                    "random": true
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#ffc72c",
+                    "opacity": 0.4,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 2,
+                    "direction": "none",
+                    "random": false,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {"enable": true, "mode": "grab"},
+                    "onclick": {"enable": true, "mode": "push"},
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {"distance": 140, "line_linked": {"opacity": 0.8}},
+                    "push": {"particles_nb": 4}
+                }
+            },
+            "retina_detect": true
+        });
+    </script>
 </body>
 </html>
