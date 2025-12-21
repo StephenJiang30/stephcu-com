@@ -10,19 +10,18 @@
 <style>
 :root{
   --gsw-blue:#1d428a;
-  --gsw-gold:#ffc72c;
 }
 
 /* 主题 */
 html[data-theme="light"]{
   --bg:#f4f6fb;
-  --card:rgba(255,255,255,.6);
+  --card:rgba(255,255,255,.62);
   --border:rgba(255,255,255,.45);
   --text:#0b0b0f;
 }
 html[data-theme="dark"]{
   --bg:#050814;
-  --card:rgba(18,26,52,.48);
+  --card:rgba(18,26,52,.5);
   --border:rgba(255,255,255,.18);
   --text:#eef1f8;
 }
@@ -51,7 +50,7 @@ body{
   background:
     radial-gradient(circle at 30% 30%,#1d428a66,transparent 40%),
     radial-gradient(circle at 70% 70%,#3a5edb66,transparent 45%);
-  animation:float 26s ease-in-out infinite;
+  animation:float 28s ease-in-out infinite;
 }
 @keyframes float{
   0%,100%{transform:translateY(0)}
@@ -123,11 +122,11 @@ body{
   cursor:pointer;
   transition:.25s;
 }
-.tile.dragging{
-  opacity:.6;
-}
 .tile:hover{
   transform:translateY(-6px);
+}
+.tile.dragging{
+  opacity:.6;
 }
 
 /* 图标 */
@@ -156,6 +155,8 @@ body{
   font-size:16px;
   font-weight:600;
 }
+
+/* 编辑模式 */
 .editing .tile{
   cursor:grab;
 }
@@ -187,9 +188,10 @@ body{
 </div>
 
 <script>
-/* 主题 */
+/* ========= 主题 ========= */
 const root=document.documentElement;
 const themeBtn=document.getElementById("themeBtn");
+
 function setTheme(t){
   root.dataset.theme=t;
   themeBtn.textContent=t==="dark"?"🌙":"☀️";
@@ -207,7 +209,7 @@ themeBtn.onclick=()=>{
   localStorage.setItem("theme",t);
 };
 
-/* 网站数据 */
+/* ========= 数据 ========= */
 let sites=[
   ["Google","https://www.google.com/","google"],
   ["ChatGPT","https://chatgpt.com/","openai"],
@@ -227,10 +229,15 @@ let sites=[
 ];
 
 const grid=document.getElementById("grid");
-const savedOrder=localStorage.getItem("sites");
-if(savedOrder) sites=JSON.parse(savedOrder);
+const savedSites=localStorage.getItem("sites");
+if(savedSites){
+  sites=JSON.parse(savedSites);
+}
 
-/* 渲染 */
+/* ========= 渲染 ========= */
+let editing=false;
+let dragSrc=null;
+
 function render(){
   grid.innerHTML="";
   sites.forEach(([name,url,icon])=>{
@@ -238,7 +245,9 @@ function render(){
     tile.className="tile";
     tile.draggable=editing;
 
-    tile.onclick=()=>!editing && window.open(url,"_blank");
+    tile.onclick=()=>{
+      if(!editing) window.open(url,"_blank");
+    };
 
     const iconBox=document.createElement("div");
     iconBox.className="icon";
@@ -250,41 +259,37 @@ function render(){
 
     tile.append(iconBox,label);
     grid.appendChild(tile);
+
+    /* 拖拽事件 */
+    tile.addEventListener("dragstart",()=>{
+      dragSrc=tile;
+      tile.classList.add("dragging");
+    });
+    tile.addEventListener("dragend",()=>{
+      tile.classList.remove("dragging");
+      localStorage.setItem("sites",JSON.stringify(sites));
+    });
+    tile.addEventListener("dragover",e=>{
+      e.preventDefault();
+      if(!editing || dragSrc===tile) return;
+      const nodes=[...grid.children];
+      const srcI=nodes.indexOf(dragSrc);
+      const tgtI=nodes.indexOf(tile);
+      sites.splice(tgtI,0,sites.splice(srcI,1)[0]);
+      render();
+    });
   });
 }
 render();
 
-/* 编辑模式 + 拖拽 */
-let editing=false;
+/* ========= 编辑按钮 ========= */
 const editBtn=document.getElementById("editBtn");
-
 editBtn.onclick=()=>{
   editing=!editing;
   document.body.classList.toggle("editing",editing);
   editBtn.textContent=editing?"✔":"✏️";
   render();
 };
-
-let dragSrc;
-grid.addEventListener("dragstart",e=>{
-  dragSrc=e.target;
-  e.target.classList.add("dragging");
-});
-grid.addEventListener("dragend",e=>{
-  e.target.classList.remove("dragging");
-  localStorage.setItem("sites",JSON.stringify(sites));
-});
-grid.addEventListener("dragover",e=>{
-  e.preventDefault();
-  const target=e.target.closest(".tile");
-  if(target&&target!==dragSrc){
-    const nodes=[...grid.children];
-    const srcI=nodes.indexOf(dragSrc);
-    const tgtI=nodes.indexOf(target);
-    sites.splice(tgtI,0,sites.splice(srcI,1)[0]);
-    render();
-  }
-});
 </script>
 </body>
 </html>
