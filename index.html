@@ -13,18 +13,20 @@
   --gsw2:#3a5edb;
 }
 
-/* 主题变量 */
+/* ===== 主题 ===== */
 html[data-theme="light"]{
-  --bg:#f5f7fb;
-  --card:rgba(255,255,255,.68);
-  --border:rgba(255,255,255,.5);
+  --bg:#e9edf5;               /* 🔧 更深的浅色背景 */
+  --card:rgba(255,255,255,.75);
+  --border:rgba(0,0,0,.08);   /* 🔧 明确边界 */
   --text:#0b0c12;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
 }
 html[data-theme="dark"]{
   --bg:#060912;
   --card:rgba(18,26,52,.58);
   --border:rgba(255,255,255,.18);
   --text:#eef1f8;
+  --shadow:none;
 }
 
 *{box-sizing:border-box}
@@ -40,7 +42,7 @@ body{
   align-items:center;
 }
 
-/* 背景 */
+/* ===== 背景 ===== */
 .bg{
   position:fixed;
   inset:0;
@@ -60,7 +62,7 @@ html[data-theme="dark"] .bg::before{
   50%{transform:translateY(-120px)}
 }
 
-/* 布局 */
+/* ===== 布局 ===== */
 .wrap{
   width:100%;
   max-width:1200px;
@@ -90,6 +92,10 @@ html[data-theme="dark"] .bg::before{
 .title h1{margin:0;font-size:24px}
 .title span{font-size:13px;opacity:.65}
 
+.controls{
+  display:flex;
+  gap:10px;
+}
 .controls button{
   width:44px;height:44px;
   border-radius:50%;
@@ -100,14 +106,14 @@ html[data-theme="dark"] .bg::before{
   font-size:18px;
 }
 
-/* 网格 */
+/* ===== 网格 ===== */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
   gap:28px;
 }
 
-/* 卡片 */
+/* ===== 卡片 ===== */
 .tile{
   display:flex;
   align-items:center;
@@ -117,12 +123,25 @@ html[data-theme="dark"] .bg::before{
   background:var(--card);
   backdrop-filter:blur(26px) saturate(180%);
   border:1px solid var(--border);
+  box-shadow:var(--shadow);
   cursor:pointer;
   transition:.25s;
 }
-.tile:hover{transform:translateY(-6px)}
+.tile:hover{
+  transform:translateY(-6px);
+}
 
-/* 图标容器 */
+/* 编辑模式 */
+.editing .tile{
+  animation:wiggle .25s ease-in-out infinite alternate;
+  cursor:grab;
+}
+@keyframes wiggle{
+  from{transform:rotate(-0.6deg)}
+  to{transform:rotate(0.6deg)}
+}
+
+/* ===== 图标 ===== */
 .icon{
   width:64px;height:64px;
   border-radius:18px;
@@ -137,15 +156,11 @@ html[data-theme="dark"] .bg::before{
   flex-shrink:0;
   box-shadow:0 8px 20px rgba(29,66,138,.45);
 }
-
-/* logo 本身不反色 */
 .icon img{
   width:36px;
   height:36px;
   object-fit:contain;
 }
-
-/* fallback */
 .icon .letter{
   font-size:26px;
   font-weight:700;
@@ -174,6 +189,7 @@ html[data-theme="dark"] .bg::before{
       </div>
     </div>
     <div class="controls">
+      <button id="editBtn">✏️</button>
       <button id="themeBtn">🌙</button>
     </div>
   </div>
@@ -182,7 +198,7 @@ html[data-theme="dark"] .bg::before{
 </div>
 
 <script>
-/* 主题 */
+/* ===== 主题 ===== */
 const root=document.documentElement;
 const themeBtn=document.getElementById("themeBtn");
 function setTheme(t){
@@ -192,8 +208,8 @@ function setTheme(t){
 setTheme(new Date().getHours()>=18?"dark":"light");
 themeBtn.onclick=()=>setTheme(root.dataset.theme==="dark"?"light":"dark");
 
-/* 网站列表 */
-const sites=[
+/* ===== 网站数据 ===== */
+const defaultSites=[
  ["Google","https://www.google.com"],
  ["YouTube","https://www.youtube.com"],
  ["ChatGPT","https://chatgpt.com"],
@@ -210,9 +226,11 @@ const sites=[
  ["Internet Archive","https://archive.org"]
 ];
 
+let sites=JSON.parse(localStorage.getItem("sites"))||defaultSites;
+
 const grid=document.getElementById("grid");
 
-/* favicon 多源加载 */
+/* favicon 多源 */
 function createIcon(domain,name){
   const box=document.createElement("div");
   box.className="icon";
@@ -239,21 +257,53 @@ function createIcon(domain,name){
   return box;
 }
 
-sites.forEach(([name,url])=>{
-  const tile=document.createElement("div");
-  tile.className="tile";
-  tile.onclick=()=>window.open(url,"_blank");
+/* 渲染 */
+function render(){
+  grid.innerHTML="";
+  sites.forEach(([name,url])=>{
+    const tile=document.createElement("div");
+    tile.className="tile";
+    tile.draggable=isEditing;
+    tile.onclick=()=>!isEditing && window.open(url,"_blank");
 
-  const domain=new URL(url).origin;
-  tile.appendChild(createIcon(domain,name));
+    tile.appendChild(createIcon(new URL(url).origin,name));
 
-  const label=document.createElement("div");
-  label.className="name";
-  label.textContent=name;
+    const label=document.createElement("div");
+    label.className="name";
+    label.textContent=name;
 
-  tile.appendChild(label);
-  grid.appendChild(tile);
-});
+    tile.appendChild(label);
+    grid.appendChild(tile);
+  });
+  enableDrag();
+}
+
+/* ===== 编辑模式 & 拖拽 ===== */
+let isEditing=false;
+const editBtn=document.getElementById("editBtn");
+
+editBtn.onclick=()=>{
+  isEditing=!isEditing;
+  document.body.classList.toggle("editing",isEditing);
+  editBtn.textContent=isEditing?"✅":"✏️";
+  render();
+};
+
+function enableDrag(){
+  let dragIndex;
+  [...grid.children].forEach((tile,i)=>{
+    tile.ondragstart=()=>dragIndex=i;
+    tile.ondragover=e=>e.preventDefault();
+    tile.ondrop=()=>{
+      const item=sites.splice(dragIndex,1)[0];
+      sites.splice(i,0,item);
+      localStorage.setItem("sites",JSON.stringify(sites));
+      render();
+    };
+  });
+}
+
+render();
 </script>
 </body>
 </html>
