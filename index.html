@@ -1,183 +1,254 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="auto">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stephcu</title>
-<link rel="icon" href="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png">
 
 <style>
-    /* 全屏粒子背景容器 */
-    #particles-js {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1; /* 在内容后面 */
-        background: linear-gradient(120deg, #1d428a, #003366, #1d428a);
-        background-size: 300% 300%;
-        animation: gradientBG 10s ease infinite;
-    }
-    @keyframes gradientBG {
-        0% {background-position: 0% 50%;}
-        50% {background-position: 100% 50%;}
-        100% {background-position: 0% 50%;}
-    }
+/* =====================
+   Apple 风格主题变量
+   ===================== */
+:root{
+  --bg: linear-gradient(180deg,#f5f6f8,#e9ebf0);
+  --card: rgba(255,255,255,.7);
+  --border: rgba(0,0,0,.08);
+  --text: #0b0b0f;
+  --muted: #5b5f6a;
+  --radius: 16px;
+}
 
-    /* 液态玻璃卡片 */
-    .glass {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        padding: 40px;
-        width: 500px;
-        text-align: center;
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        animation: fadeIn 1.5s ease;
-    }
-    @keyframes fadeIn {
-        from {opacity: 0; transform: translateY(20px);}
-        to {opacity: 1; transform: translateY(0);}
-    }
+[data-theme="dark"]{
+  --bg: linear-gradient(180deg,#0b1226,#0f2144);
+  --card: rgba(24,28,48,.65);
+  --border: rgba(255,255,255,.08);
+  --text: #eef1f8;
+  --muted: #a9b0c7;
+}
 
-    /* 页面布局 */
-    body {
-        margin: 0;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-    }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",
+               "Segoe UI",Inter,Roboto,Helvetica,Arial;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:28px;
+  transition:.4s;
+}
 
-    /* 标题 */
-    h1 {
-        font-size: 50px;
-        color: rgb(255, 199, 44);
-        margin-bottom: 20px;
-        text-shadow: 0 0 10px rgba(255,199,44,0.8);
-    }
+/* =====================
+   顶部
+   ===================== */
+.wrap{width:100%;max-width:1200px}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:22px;
+}
+.brand{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+.logo{
+  width:52px;height:52px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#4f7cff,#1f3cff);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:700;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+.brand h1{
+  font-size:20px;
+  margin:0;
+}
+.brand span{
+  font-size:13px;
+  color:var(--muted);
+}
 
-    p {
-        font-size: 20px;
-        color: #fff;
-        margin: 20px 0;
-    }
+.toggle{
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--card);
+  cursor:pointer;
+  font-size:14px;
+  backdrop-filter: blur(12px);
+}
 
-    /* 链接按钮 */
-    a {
-        display: inline-block;
-        margin-top: 8px;
-        padding: 10px 20px;
-        color: rgb(255, 199, 44);
-        text-decoration: none;
-        font-weight: bold;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(255, 199, 44, 0.5);
-    }
-    a:hover {
-        background: rgba(255, 199, 44, 0.2);
-        transform: scale(1.05);
-        box-shadow: 0 0 15px rgba(255,199,44,0.6);
-    }
+/* =====================
+   网格卡片
+   ===================== */
+.grid{
+  display:grid;
+  gap:16px;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+}
+
+.tile{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:16px;
+  border-radius:var(--radius);
+  background:var(--card);
+  border:1px solid var(--border);
+  text-decoration:none;
+  color:inherit;
+  transition:.25s;
+}
+.tile:hover{
+  transform:translateY(-6px);
+  box-shadow:0 18px 40px rgba(0,0,0,.25);
+}
+
+.icon{
+  width:52px;height:52px;
+  border-radius:12px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.icon img{
+  width:32px;height:32px;
+  object-fit:contain;
+}
+
+.meta .name{
+  font-weight:600;
+  font-size:15px;
+}
+.meta .url{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+/* =====================
+   响应式
+   ===================== */
+@media(max-width:600px){
+  .icon{width:46px;height:46px}
+}
 </style>
 </head>
+
 <body>
-    <!-- 粒子背景 -->
-    <div id="particles-js"></div>
+<div class="wrap">
 
-    <div class="glass">
-        <h1>Hello World!</h1>
-        <p>🚧 Website is Under Construction 🚧</p >
-
-        <p>
-            中华人民共和国教育部<br>
-            <a href=" " target="_blank">
-                Ministry of Education of PRC
-            </a >
-        </p >
-
-        <p>
-            中国高等教育学生信息网<br>
-            <a href="https://www.chsi.com.cn/" target="_blank">
-                China Higher Education Student Information and Career Center
-            </a >
-        </p >
-
-        <p>
-            教育部教育考试院<br>
-            <a href="https://www.neea.edu.cn/" target="_blank">
-                National Education Examinations Authority
-            </a >
-        </p >
-
-        <p>
-            沃德尔·斯蒂芬·库里<br>
-            <a href="https://www.nba.com/player/201939" target="_blank">
-                Wardell Stephen Curry
-            </a ><br>
-            <a href="https://mp.weixin.qq.com/s?__biz=MzkwNjIwNzUxMg==&mid=2247484118&idx=1&sn=9f38f6efe69dec95b755897b1f8239f9&chksm=c0ed4aa1f79ac3b7240317f5c8ab51ba5d22cae7a64a5465530b1ac44f6397db4372fd4c6d46#rd" target="_blank">
-                Stephen Curry: Underrated
-            </a >
-        </p >
+  <!-- 顶部 -->
+  <div class="header">
+    <div class="brand">
+      <div class="logo">S</div>
+      <div>
+        <h1>Stephcu</h1>
+        <span>Quick Links · 快速入口</span>
+      </div>
     </div>
+    <button class="toggle" id="themeBtn">🌗 主题</button>
+  </div>
 
-    <!-- 引入粒子背景脚本 -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script>
-        particlesJS("particles-js", {
-            "particles": {
-                "number": {
-                    "value": 60,
-                    "density": {"enable": true, "value_area": 800}
-                },
-                "color": {"value": "#ffc72c"},
-                "shape": {
-                    "type": "circle",
-                    "stroke": {"width": 0, "color": "#000"},
-                },
-                "opacity": {
-                    "value": 0.5,
-                    "random": false
-                },
-                "size": {
-                    "value": 4,
-                    "random": true
-                },
-                "line_linked": {
-                    "enable": true,
-                    "distance": 150,
-                    "color": "#ffc72c",
-                    "opacity": 0.4,
-                    "width": 1
-                },
-                "move": {
-                    "enable": true,
-                    "speed": 2,
-                    "direction": "none",
-                    "random": false,
-                    "straight": false,
-                    "out_mode": "out",
-                    "bounce": false
-                }
-            },
-            "interactivity": {
-                "detect_on": "canvas",
-                "events": {
-                    "onhover": {"enable": true, "mode": "grab"},
-                    "onclick": {"enable": true, "mode": "push"},
-                    "resize": true
-                },
-                "modes": {
-                    "grab": {"distance": 140, "line_linked": {"opacity": 0.8}},
-                    "push": {"particles_nb": 4}
-                }
-            },
-            "retina_detect": true
-        });
-    </script>
+  <!-- 链接网格（全部补全） -->
+  <div class="grid">
+
+    <a class="tile" href="https://www.google.com/" target="_blank">
+      <div class="icon"><img src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"></div>
+      <div class="meta"><div class="name">Google</div><div class="url">google.com</div></div>
+    </a>
+
+    <a class="tile" href="https://chatgpt.com/" target="_blank">
+      <div class="icon"><img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg"></div>
+      <div class="meta"><div class="name">ChatGPT</div><div class="url">chatgpt.com</div></div>
+    </a>
+
+    <a class="tile" href="https://www.youtube.com/" target="_blank">
+      <div class="icon"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg"></div>
+      <div class="meta"><div class="name">YouTube</div><div class="url">youtube.com</div></div>
+    </a>
+
+    <a class="tile" href="https://www.bilibili.com/" target="_blank">
+      <div class="icon"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5b/Bilibili_logo.svg"></div>
+      <div class="meta"><div class="name">Bilibili</div><div class="url">bilibili.com</div></div>
+    </a>
+
+    <a class="tile" href="https://www.whoer.net/zh#" target="_blank">
+      <div class="icon"><img src="https://www.whoer.net/assets/images/favicon-96x96.png"></div>
+      <div class="meta"><div class="name">Whoer</div><div class="url">whoer.net</div></div>
+    </a>
+
+    <a class="tile" href="https://www.douyin.com/" target="_blank">
+      <div class="icon"><img src="https://sf1-cdn-tos.douyinstatic.com/obj/eden-cn/uvyulog.png"></div>
+      <div class="meta"><div class="name">抖音 Douyin</div><div class="url">douyin.com</div></div>
+    </a>
+
+    <a class="tile" href="https://music.apple.com/cn/browse" target="_blank">
+      <div class="icon"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Apple_Music_icon.svg"></div>
+      <div class="meta"><div class="name">Apple Music</div><div class="url">music.apple.com</div></div>
+    </a>
+
+    <a class="tile" href="https://github.com/" target="_blank">
+      <div class="icon"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"></div>
+      <div class="meta"><div class="name">GitHub</div><div class="url">github.com</div></div>
+    </a>
+
+    <a class="tile" href="https://home.console.aliyun.com/home/dashboard/ProductAndService" target="_blank">
+      <div class="icon"><img src="https://img.alicdn.com/imgextra/i4/O1CN01M0Q0lE1c4H0lC5RZx_!!6000000003551-2-tps-200-200.png"></div>
+      <div class="meta"><div class="name">阿里云控制台</div><div class="url">aliyun.com</div></div>
+    </a>
+
+    <a class="tile" href="https://www.zdic.net/" target="_blank">
+      <div class="icon"><img src="https://www.zdic.net/favicon.ico"></div>
+      <div class="meta"><div class="name">汉典 Zdic</div><div class="url">zdic.net</div></div>
+    </a>
+
+    <a class="tile" href="https://webvpn.gzhu.edu.cn/https/77726476706e69737468656265737421fef256913e7e6f4a761dc7a99c406d36d9/up/view?m=up#act=portal/viewhome" target="_blank">
+      <div class="icon"><img src="https://www.gzhu.edu.cn/favicon.ico"></div>
+      <div class="meta"><div class="name">广州大学 WebVPN</div><div class="url">gzhu.edu.cn</div></div>
+    </a>
+
+    <a class="tile" href="https://www.shidianguji.com/zh/" target="_blank">
+      <div class="icon"><img src="https://www.shidianguji.com/favicon.ico"></div>
+      <div class="meta"><div class="name">识典古籍</div><div class="url">shidianguji.com</div></div>
+    </a>
+
+    <a class="tile" href="https://archive.org/" target="_blank">
+      <div class="icon"><img src="https://archive.org/favicon.ico"></div>
+      <div class="meta"><div class="name">Internet Archive</div><div class="url">archive.org</div></div>
+    </a>
+
+  </div>
+</div>
+
+<script>
+/* 主题切换 */
+const root=document.documentElement;
+const btn=document.getElementById("themeBtn");
+const saved=localStorage.getItem("theme");
+
+if(saved){
+  root.setAttribute("data-theme",saved);
+}else if(matchMedia("(prefers-color-scheme: dark)").matches){
+  root.setAttribute("data-theme","dark");
+}
+
+btn.onclick=()=>{
+  const now=root.getAttribute("data-theme")==="dark"?"light":"dark";
+  root.setAttribute("data-theme",now);
+  localStorage.setItem("theme",now);
+};
+</script>
+
 </body>
 </html>
