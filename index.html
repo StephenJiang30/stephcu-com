@@ -9,20 +9,20 @@
 
 <style>
 :root{
-  --gsw-blue:#1d428a;
-  --gsw-blue-2:#3a5edb;
+  --gsw:#1d428a;
+  --gsw2:#3a5edb;
 }
 
-/* 主题 */
+/* 主题变量 */
 html[data-theme="light"]{
-  --bg:#f4f6fb;
-  --card:rgba(255,255,255,.62);
-  --border:rgba(255,255,255,.45);
-  --text:#0b0b0f;
+  --bg:#f5f7fb;
+  --card:rgba(255,255,255,.68);
+  --border:rgba(255,255,255,.5);
+  --text:#0b0c12;
 }
 html[data-theme="dark"]{
-  --bg:#050814;
-  --card:rgba(18,26,52,.52);
+  --bg:#060912;
+  --card:rgba(18,26,52,.58);
   --border:rgba(255,255,255,.18);
   --text:#eef1f8;
 }
@@ -32,7 +32,7 @@ body{
   margin:0;
   min-height:100vh;
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",
-    Inter,Segoe UI,Roboto,Helvetica,Arial;
+    Inter,Segoe UI,Roboto,Arial;
   background:var(--bg);
   color:var(--text);
   display:flex;
@@ -42,16 +42,18 @@ body{
 
 /* 背景 */
 .bg{
-  position:fixed; inset:0; z-index:-1;
+  position:fixed;
+  inset:0;
+  z-index:-1;
 }
-.bg::before{
+html[data-theme="dark"] .bg::before{
   content:"";
   position:absolute;
   inset:-40%;
   background:
     radial-gradient(circle at 30% 30%,#1d428a66,transparent 40%),
     radial-gradient(circle at 70% 70%,#3a5edb66,transparent 45%);
-  animation:float 26s ease-in-out infinite;
+  animation:float 28s ease-in-out infinite;
 }
 @keyframes float{
   0%,100%{transform:translateY(0)}
@@ -62,20 +64,20 @@ body{
 .wrap{
   width:100%;
   max-width:1200px;
-  padding:36px;
+  padding:40px;
 }
 
 .header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:36px;
+  margin-bottom:40px;
 }
 
 .brand{
   display:flex;
-  align-items:center;
   gap:16px;
+  align-items:center;
 }
 
 .logo{
@@ -88,17 +90,12 @@ body{
 .title h1{margin:0;font-size:24px}
 .title span{font-size:13px;opacity:.65}
 
-.controls{
-  display:flex;
-  gap:10px;
-}
-
-.btn{
+.controls button{
   width:44px;height:44px;
   border-radius:50%;
   border:1px solid var(--border);
   background:var(--card);
-  backdrop-filter: blur(18px);
+  backdrop-filter:blur(18px);
   cursor:pointer;
   font-size:18px;
 }
@@ -106,8 +103,8 @@ body{
 /* 网格 */
 .grid{
   display:grid;
-  gap:26px;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:28px;
 }
 
 /* 卡片 */
@@ -118,40 +115,37 @@ body{
   padding:22px;
   border-radius:26px;
   background:var(--card);
-  backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);
   border:1px solid var(--border);
   cursor:pointer;
   transition:.25s;
 }
-.tile:hover{
-  transform:translateY(-6px);
-}
+.tile:hover{transform:translateY(-6px)}
 
-/* 图标容器（统一） */
+/* 图标容器 */
 .icon{
-  width:64px;
-  height:64px;
+  width:64px;height:64px;
   border-radius:18px;
+  background:linear-gradient(
+    135deg,
+    rgba(29,66,138,.85),
+    rgba(58,94,219,.75)
+  );
   display:flex;
   align-items:center;
   justify-content:center;
   flex-shrink:0;
-  background:linear-gradient(
-    135deg,
-    rgba(29,66,138,.75),
-    rgba(58,94,219,.65)
-  );
   box-shadow:0 8px 20px rgba(29,66,138,.45);
 }
 
-/* 所有图标内容强制统一 */
-.icon img,
-.icon svg{
-  width:32px;
-  height:32px;
+/* logo 本身不反色 */
+.icon img{
+  width:36px;
+  height:36px;
+  object-fit:contain;
 }
 
-/* fallback 字母 */
+/* fallback */
 .icon .letter{
   font-size:26px;
   font-weight:700;
@@ -180,7 +174,7 @@ body{
       </div>
     </div>
     <div class="controls">
-      <button class="btn" id="themeBtn">🌙</button>
+      <button id="themeBtn">🌙</button>
     </div>
   </div>
 
@@ -188,7 +182,7 @@ body{
 </div>
 
 <script>
-/* ===== 主题 ===== */
+/* 主题 */
 const root=document.documentElement;
 const themeBtn=document.getElementById("themeBtn");
 function setTheme(t){
@@ -196,54 +190,68 @@ function setTheme(t){
   themeBtn.textContent=t==="dark"?"🌙":"☀️";
 }
 setTheme(new Date().getHours()>=18?"dark":"light");
-themeBtn.onclick=()=>{
-  setTheme(root.dataset.theme==="dark"?"light":"dark");
-};
+themeBtn.onclick=()=>setTheme(root.dataset.theme==="dark"?"light":"dark");
 
-/* ===== 网站数据（明确哪些有官方 icon） ===== */
+/* 网站列表 */
 const sites=[
-  ["Google","https://www.google.com/","google"],
-  ["YouTube","https://www.youtube.com/","youtube"],
-  ["GitHub","https://github.com/","github"],
-  ["Bilibili","https://www.bilibili.com/","bilibili"],
-  ["Bing","https://www.bing.com/","bing"],
-  ["ChatGPT","https://chatgpt.com/","openai"],
-  ["Gemini","https://gemini.google.com/","google"],
-  ["文件传输助手","https://filehelper.weixin.qq.com/","wechat"],
-  ["抖音","https://www.douyin.com/","tiktok"],
-  ["Apple Music","https://music.apple.com/cn/browse","applemusic"],
-  ["数字广大","https://webvpn.gzhu.edu.cn/https/77726476706e69737468656265737421fef256913e7e6f4a761dc7a99c406d36d9/up/view?m=up#act=portal/viewhome",null],
-  ["汉典","https://www.zdic.net/",null],
-  ["识典古籍","https://www.shidianguji.com/zh/",null],
-  ["Internet Archive","https://archive.org/","archive"]
+ ["Google","https://www.google.com"],
+ ["YouTube","https://www.youtube.com"],
+ ["ChatGPT","https://chatgpt.com"],
+ ["GitHub","https://github.com"],
+ ["Bilibili","https://www.bilibili.com"],
+ ["Bing","https://www.bing.com"],
+ ["Gemini","https://gemini.google.com"],
+ ["文件传输助手","https://filehelper.weixin.qq.com"],
+ ["抖音","https://www.douyin.com"],
+ ["Apple Music","https://music.apple.com/cn/browse"],
+ ["数字广大","https://webvpn.gzhu.edu.cn/https/77726476706e69737468656265737421fef256913e7e6f4a761dc7a99c406d36d9/up/view?m=up#act=portal/viewhome"],
+ ["汉典","https://www.zdic.net"],
+ ["识典古籍","https://www.shidianguji.com/zh"],
+ ["Internet Archive","https://archive.org"]
 ];
 
 const grid=document.getElementById("grid");
 
-sites.forEach(([name,url,icon])=>{
+/* favicon 多源加载 */
+function createIcon(domain,name){
+  const box=document.createElement("div");
+  box.className="icon";
+  const img=document.createElement("img");
+
+  const sources=[
+    `https://www.google.com/s2/favicons?sz=128&domain=${domain}`,
+    `${domain}/favicon.ico`,
+    `${domain}/apple-touch-icon.png`
+  ];
+
+  let i=0;
+  img.src=sources[i];
+  img.onerror=()=>{
+    i++;
+    if(i<sources.length){
+      img.src=sources[i];
+    }else{
+      box.innerHTML=`<div class="letter">${name[0]}</div>`;
+    }
+  };
+
+  box.appendChild(img);
+  return box;
+}
+
+sites.forEach(([name,url])=>{
   const tile=document.createElement("div");
   tile.className="tile";
   tile.onclick=()=>window.open(url,"_blank");
 
-  const iconBox=document.createElement("div");
-  iconBox.className="icon";
-
-  if(icon){
-    const img=document.createElement("img");
-    img.src=`https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${icon}.svg`;
-    img.onerror=()=>{
-      iconBox.innerHTML=`<div class="letter">${name[0]}</div>`;
-    };
-    iconBox.appendChild(img);
-  }else{
-    iconBox.innerHTML=`<div class="letter">${name[0]}</div>`;
-  }
+  const domain=new URL(url).origin;
+  tile.appendChild(createIcon(domain,name));
 
   const label=document.createElement("div");
   label.className="name";
   label.textContent=name;
 
-  tile.append(iconBox,label);
+  tile.appendChild(label);
   grid.appendChild(tile);
 });
 </script>
