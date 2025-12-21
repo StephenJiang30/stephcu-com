@@ -13,16 +13,17 @@
   --gsw-gold:#ffc72c;
 }
 
+/* 主题 */
 html[data-theme="light"]{
   --bg:#f4f6fb;
-  --card:rgba(255,255,255,0.6);
-  --border:rgba(255,255,255,0.4);
+  --card:rgba(255,255,255,.6);
+  --border:rgba(255,255,255,.45);
   --text:#0b0b0f;
 }
 html[data-theme="dark"]{
   --bg:#050814;
-  --card:rgba(18,26,52,0.45);
-  --border:rgba(255,255,255,0.18);
+  --card:rgba(18,26,52,.48);
+  --border:rgba(255,255,255,.18);
   --text:#eef1f8;
 }
 
@@ -39,7 +40,7 @@ body{
   align-items:center;
 }
 
-/* 背景光效 */
+/* 背景 */
 .bg{
   position:fixed; inset:0; z-index:-1;
 }
@@ -50,7 +51,7 @@ body{
   background:
     radial-gradient(circle at 30% 30%,#1d428a66,transparent 40%),
     radial-gradient(circle at 70% 70%,#3a5edb66,transparent 45%);
-  animation:float 24s ease-in-out infinite;
+  animation:float 26s ease-in-out infinite;
 }
 @keyframes float{
   0%,100%{transform:translateY(0)}
@@ -87,7 +88,12 @@ body{
 .title h1{margin:0;font-size:24px}
 .title span{font-size:13px;opacity:.65}
 
-.theme-toggle{
+.controls{
+  display:flex;
+  gap:10px;
+}
+
+.btn{
   width:44px;height:44px;
   border-radius:50%;
   border:1px solid var(--border);
@@ -101,7 +107,7 @@ body{
 .grid{
   display:grid;
   gap:26px;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
 }
 
 /* 卡片 */
@@ -115,13 +121,13 @@ body{
   backdrop-filter: blur(22px) saturate(180%);
   border:1px solid var(--border);
   cursor:pointer;
-  transition:.25s ease;
+  transition:.25s;
+}
+.tile.dragging{
+  opacity:.6;
 }
 .tile:hover{
   transform:translateY(-6px);
-  box-shadow:
-    0 22px 50px rgba(0,0,0,.3),
-    inset 0 1px 0 rgba(255,255,255,.25);
 }
 
 /* 图标 */
@@ -132,32 +138,26 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  flex-shrink:0;
   background:linear-gradient(
     135deg,
-    rgba(29,66,138,0.65),
-    rgba(58,94,219,0.55)
+    rgba(29,66,138,.7),
+    rgba(58,94,219,.6)
   );
-  backdrop-filter: blur(12px);
-  box-shadow:
-    0 8px 20px rgba(29,66,138,.45),
-    inset 0 1px 0 rgba(255,255,255,.25);
+  box-shadow:0 8px 20px rgba(29,66,138,.45);
 }
 .icon img{
-  width:40px;
-  height:40px;
-  object-fit:contain;
-}
-.icon span{
-  font-size:26px;
-  font-weight:700;
-  color:var(--gsw-gold);
+  width:34px;
+  height:34px;
+  filter:invert(1);
 }
 
-/* 文字 */
+/* 名称 */
 .name{
   font-size:16px;
   font-weight:600;
+}
+.editing .tile{
+  cursor:grab;
 }
 </style>
 </head>
@@ -176,7 +176,11 @@ body{
         <span>Quick Links · 快速入口</span>
       </div>
     </div>
-    <button class="theme-toggle" id="themeBtn">🌙</button>
+
+    <div class="controls">
+      <button class="btn" id="editBtn">✏️</button>
+      <button class="btn" id="themeBtn">🌙</button>
+    </div>
   </div>
 
   <div class="grid" id="grid"></div>
@@ -185,65 +189,101 @@ body{
 <script>
 /* 主题 */
 const root=document.documentElement;
-const btn=document.getElementById("themeBtn");
-
-function applyTheme(t){
+const themeBtn=document.getElementById("themeBtn");
+function setTheme(t){
   root.dataset.theme=t;
-  btn.textContent=t==="dark"?"🌙":"☀️";
+  themeBtn.textContent=t==="dark"?"🌙":"☀️";
 }
-const saved=localStorage.getItem("theme");
-if(saved){
-  applyTheme(saved);
+const savedTheme=localStorage.getItem("theme");
+if(savedTheme){
+  setTheme(savedTheme);
 }else{
   const h=new Date().getHours();
-  applyTheme(h>=18||h<6?"dark":"light");
+  setTheme(h>=18||h<6?"dark":"light");
 }
-btn.onclick=()=>{
+themeBtn.onclick=()=>{
   const t=root.dataset.theme==="dark"?"light":"dark";
-  applyTheme(t);
+  setTheme(t);
   localStorage.setItem("theme",t);
 };
 
-/* 网站 */
-const sites=[
-["Google","https://www.google.com/"],
-["ChatGPT","https://chatgpt.com/"],
-["YouTube","https://www.youtube.com/"],
-["Bilibili","https://www.bilibili.com/"],
-["Whoer","https://www.whoer.net/zh#"],
-["抖音","https://www.douyin.com/"],
-["Apple Music","https://music.apple.com/cn/browse"],
-["GitHub","https://github.com/"],
-["阿里云","https://home.console.aliyun.com/home/dashboard/ProductAndService"],
-["广州大学","https://webvpn.gzhu.edu.cn/https/77726476706e69737468656265737421fef256913e7e6f4a761dc7a99c406d36d9/up/view?m=up#act=portal/viewhome"],
-["汉典","https://www.zdic.net/"],
-["识典古籍","https://www.shidianguji.com/zh/"],
-["Internet Archive","https://archive.org/"]
+/* 网站数据 */
+let sites=[
+  ["Google","https://www.google.com/","google"],
+  ["ChatGPT","https://chatgpt.com/","openai"],
+  ["YouTube","https://www.youtube.com/","youtube"],
+  ["Bilibili","https://www.bilibili.com/","bilibili"],
+  ["Bing","https://www.bing.com/","bing"],
+  ["Gemini","https://gemini.google.com/","google"],
+  ["微信文件传输助手","https://filehelper.weixin.qq.com/","wechat"],
+  ["抖音","https://www.douyin.com/","tiktok"],
+  ["Apple Music","https://music.apple.com/cn/browse","applemusic"],
+  ["GitHub","https://github.com/","github"],
+  ["CNKI","https://www.cnki.net/","bookstack"],
+  ["广州大学","https://webvpn.gzhu.edu.cn/https/77726476706e69737468656265737421fef256913e7e6f4a761dc7a99c406d36d9/up/view?m=up#act=portal/viewhome","graduation-cap"],
+  ["汉典","https://www.zdic.net/","book"],
+  ["识典古籍","https://www.shidianguji.com/zh/","scroll"],
+  ["Internet Archive","https://archive.org/","archive"]
 ];
 
 const grid=document.getElementById("grid");
+const savedOrder=localStorage.getItem("sites");
+if(savedOrder) sites=JSON.parse(savedOrder);
 
-sites.forEach(([name,url])=>{
-  const tile=document.createElement("div");
-  tile.className="tile";
-  tile.onclick=()=>window.open(url,"_blank");
+/* 渲染 */
+function render(){
+  grid.innerHTML="";
+  sites.forEach(([name,url,icon])=>{
+    const tile=document.createElement("div");
+    tile.className="tile";
+    tile.draggable=editing;
 
-  const icon=document.createElement("div");
-  icon.className="icon";
+    tile.onclick=()=>!editing && window.open(url,"_blank");
 
-  const img=document.createElement("img");
-  img.src=`https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=128`;
-  img.onerror=()=>{
-    icon.innerHTML=`<span>${name[0]}</span>`;
-  };
-  icon.appendChild(img);
+    const iconBox=document.createElement("div");
+    iconBox.className="icon";
+    iconBox.innerHTML=`<img src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${icon}.svg">`;
 
-  const label=document.createElement("div");
-  label.className="name";
-  label.textContent=name;
+    const label=document.createElement("div");
+    label.className="name";
+    label.textContent=name;
 
-  tile.append(icon,label);
-  grid.appendChild(tile);
+    tile.append(iconBox,label);
+    grid.appendChild(tile);
+  });
+}
+render();
+
+/* 编辑模式 + 拖拽 */
+let editing=false;
+const editBtn=document.getElementById("editBtn");
+
+editBtn.onclick=()=>{
+  editing=!editing;
+  document.body.classList.toggle("editing",editing);
+  editBtn.textContent=editing?"✔":"✏️";
+  render();
+};
+
+let dragSrc;
+grid.addEventListener("dragstart",e=>{
+  dragSrc=e.target;
+  e.target.classList.add("dragging");
+});
+grid.addEventListener("dragend",e=>{
+  e.target.classList.remove("dragging");
+  localStorage.setItem("sites",JSON.stringify(sites));
+});
+grid.addEventListener("dragover",e=>{
+  e.preventDefault();
+  const target=e.target.closest(".tile");
+  if(target&&target!==dragSrc){
+    const nodes=[...grid.children];
+    const srcI=nodes.indexOf(dragSrc);
+    const tgtI=nodes.indexOf(target);
+    sites.splice(tgtI,0,sites.splice(srcI,1)[0]);
+    render();
+  }
 });
 </script>
 </body>
