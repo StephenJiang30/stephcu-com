@@ -10,6 +10,7 @@
 <style>
 :root{
   --gsw-blue:#1d428a;
+  --gsw-blue-2:#3a5edb;
 }
 
 /* 主题 */
@@ -21,7 +22,7 @@ html[data-theme="light"]{
 }
 html[data-theme="dark"]{
   --bg:#050814;
-  --card:rgba(18,26,52,.5);
+  --card:rgba(18,26,52,.52);
   --border:rgba(255,255,255,.18);
   --text:#eef1f8;
 }
@@ -50,7 +51,7 @@ body{
   background:
     radial-gradient(circle at 30% 30%,#1d428a66,transparent 40%),
     radial-gradient(circle at 70% 70%,#3a5edb66,transparent 45%);
-  animation:float 28s ease-in-out infinite;
+  animation:float 26s ease-in-out infinite;
 }
 @keyframes float{
   0%,100%{transform:translateY(0)}
@@ -125,11 +126,8 @@ body{
 .tile:hover{
   transform:translateY(-6px);
 }
-.tile.dragging{
-  opacity:.6;
-}
 
-/* 图标 */
+/* 图标容器（统一） */
 .icon{
   width:64px;
   height:64px;
@@ -137,28 +135,32 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
+  flex-shrink:0;
   background:linear-gradient(
     135deg,
-    rgba(29,66,138,.7),
-    rgba(58,94,219,.6)
+    rgba(29,66,138,.75),
+    rgba(58,94,219,.65)
   );
   box-shadow:0 8px 20px rgba(29,66,138,.45);
 }
-.icon img{
-  width:34px;
-  height:34px;
-  filter:invert(1);
+
+/* 所有图标内容强制统一 */
+.icon img,
+.icon svg{
+  width:32px;
+  height:32px;
 }
 
-/* 名称 */
+/* fallback 字母 */
+.icon .letter{
+  font-size:26px;
+  font-weight:700;
+  color:#fff;
+}
+
 .name{
   font-size:16px;
   font-weight:600;
-}
-
-/* 编辑模式 */
-.editing .tile{
-  cursor:grab;
 }
 </style>
 </head>
@@ -177,9 +179,7 @@ body{
         <span>Quick Links · 快速入口</span>
       </div>
     </div>
-
     <div class="controls">
-      <button class="btn" id="editBtn">✏️</button>
       <button class="btn" id="themeBtn">🌙</button>
     </div>
   </div>
@@ -188,108 +188,64 @@ body{
 </div>
 
 <script>
-/* ========= 主题 ========= */
+/* ===== 主题 ===== */
 const root=document.documentElement;
 const themeBtn=document.getElementById("themeBtn");
-
 function setTheme(t){
   root.dataset.theme=t;
   themeBtn.textContent=t==="dark"?"🌙":"☀️";
 }
-const savedTheme=localStorage.getItem("theme");
-if(savedTheme){
-  setTheme(savedTheme);
-}else{
-  const h=new Date().getHours();
-  setTheme(h>=18||h<6?"dark":"light");
-}
+setTheme(new Date().getHours()>=18?"dark":"light");
 themeBtn.onclick=()=>{
-  const t=root.dataset.theme==="dark"?"light":"dark";
-  setTheme(t);
-  localStorage.setItem("theme",t);
+  setTheme(root.dataset.theme==="dark"?"light":"dark");
 };
 
-/* ========= 数据 ========= */
-let sites=[
+/* ===== 网站数据（明确哪些有官方 icon） ===== */
+const sites=[
   ["Google","https://www.google.com/","google"],
-  ["ChatGPT","https://chatgpt.com/","openai"],
   ["YouTube","https://www.youtube.com/","youtube"],
+  ["GitHub","https://github.com/","github"],
   ["Bilibili","https://www.bilibili.com/","bilibili"],
   ["Bing","https://www.bing.com/","bing"],
+  ["ChatGPT","https://chatgpt.com/","openai"],
   ["Gemini","https://gemini.google.com/","google"],
-  ["微信文件传输助手","https://filehelper.weixin.qq.com/","wechat"],
+  ["文件传输助手","https://filehelper.weixin.qq.com/","wechat"],
   ["抖音","https://www.douyin.com/","tiktok"],
   ["Apple Music","https://music.apple.com/cn/browse","applemusic"],
-  ["GitHub","https://github.com/","github"],
-  ["CNKI","https://www.cnki.net/","bookstack"],
-  ["广州大学","https://webvpn.gzhu.edu.cn/https/77726476706e69737468656265737421fef256913e7e6f4a761dc7a99c406d36d9/up/view?m=up#act=portal/viewhome","graduation-cap"],
-  ["汉典","https://www.zdic.net/","book"],
-  ["识典古籍","https://www.shidianguji.com/zh/","scroll"],
+  ["数字广大","https://webvpn.gzhu.edu.cn/https/77726476706e69737468656265737421fef256913e7e6f4a761dc7a99c406d36d9/up/view?m=up#act=portal/viewhome",null],
+  ["汉典","https://www.zdic.net/",null],
+  ["识典古籍","https://www.shidianguji.com/zh/",null],
   ["Internet Archive","https://archive.org/","archive"]
 ];
 
 const grid=document.getElementById("grid");
-const savedSites=localStorage.getItem("sites");
-if(savedSites){
-  sites=JSON.parse(savedSites);
-}
 
-/* ========= 渲染 ========= */
-let editing=false;
-let dragSrc=null;
+sites.forEach(([name,url,icon])=>{
+  const tile=document.createElement("div");
+  tile.className="tile";
+  tile.onclick=()=>window.open(url,"_blank");
 
-function render(){
-  grid.innerHTML="";
-  sites.forEach(([name,url,icon])=>{
-    const tile=document.createElement("div");
-    tile.className="tile";
-    tile.draggable=editing;
+  const iconBox=document.createElement("div");
+  iconBox.className="icon";
 
-    tile.onclick=()=>{
-      if(!editing) window.open(url,"_blank");
+  if(icon){
+    const img=document.createElement("img");
+    img.src=`https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${icon}.svg`;
+    img.onerror=()=>{
+      iconBox.innerHTML=`<div class="letter">${name[0]}</div>`;
     };
+    iconBox.appendChild(img);
+  }else{
+    iconBox.innerHTML=`<div class="letter">${name[0]}</div>`;
+  }
 
-    const iconBox=document.createElement("div");
-    iconBox.className="icon";
-    iconBox.innerHTML=`<img src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${icon}.svg">`;
+  const label=document.createElement("div");
+  label.className="name";
+  label.textContent=name;
 
-    const label=document.createElement("div");
-    label.className="name";
-    label.textContent=name;
-
-    tile.append(iconBox,label);
-    grid.appendChild(tile);
-
-    /* 拖拽事件 */
-    tile.addEventListener("dragstart",()=>{
-      dragSrc=tile;
-      tile.classList.add("dragging");
-    });
-    tile.addEventListener("dragend",()=>{
-      tile.classList.remove("dragging");
-      localStorage.setItem("sites",JSON.stringify(sites));
-    });
-    tile.addEventListener("dragover",e=>{
-      e.preventDefault();
-      if(!editing || dragSrc===tile) return;
-      const nodes=[...grid.children];
-      const srcI=nodes.indexOf(dragSrc);
-      const tgtI=nodes.indexOf(tile);
-      sites.splice(tgtI,0,sites.splice(srcI,1)[0]);
-      render();
-    });
-  });
-}
-render();
-
-/* ========= 编辑按钮 ========= */
-const editBtn=document.getElementById("editBtn");
-editBtn.onclick=()=>{
-  editing=!editing;
-  document.body.classList.toggle("editing",editing);
-  editBtn.textContent=editing?"✔":"✏️";
-  render();
-};
+  tile.append(iconBox,label);
+  grid.appendChild(tile);
+});
 </script>
 </body>
 </html>
