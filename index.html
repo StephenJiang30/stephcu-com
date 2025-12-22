@@ -9,29 +9,29 @@
 
 <style>
 :root{
-  --glass: blur(12px) saturate(160%); /* 增加饱和度更显高级 */
-  --icon-bg: linear-gradient(135deg,#f4f6fb,#ffffff);
-  --icon-border: rgba(0,0,0,.12);
-  --icon-ring: rgba(255,255,255,.7);
-  --trans-base: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
+  --glass: blur(16px) saturate(180%);
+  --icon-ring: rgba(255,255,255,0.7);
+  --trans-smooth: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ===== 主题变量 ===== */
+/* ===== 主题背景定义 ===== */
 html[data-theme="light"]{
-  --bg-overlay: rgba(255,255,255,0.4);
-  --card: rgba(255,255,255,0.45);
+  --bg-color: #f0f2f5;
+  --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+  --bg-overlay: rgba(255,255,255,0.3);
+  --card: rgba(255,255,255,0.4);
   --border: rgba(0,0,0,0.06);
   --text: #1d1d1f;
+  --icon-bg: #ffffff;
 }
 html[data-theme="dark"]{
-  --bg-overlay: rgba(0,0,0,0.55);
-  --card: rgba(28,28,30,0.5);
-  --border: rgba(255,255,255,0.1);
+  --bg-color: #0b0e14;
+  --bg-gradient: linear-gradient(135deg, #1a1c2c 0%, #0d0e14 100%);
+  --bg-overlay: rgba(0,0,0,0.4);
+  --card: rgba(30,30,35,0.4);
+  --border: rgba(255,255,255,0.08);
   --text: #f5f5f7;
-
-  --icon-bg: linear-gradient(135deg,#2c2c2e,#1c1c1e);
-  --icon-border: rgba(255,255,255,0.15);
-  --icon-ring: rgba(0,0,0,0.3);
+  --icon-bg: #2c2c2e;
 }
 
 *{box-sizing:border-box}
@@ -39,23 +39,25 @@ html[data-theme="dark"]{
 body{
   margin:0;
   min-height:100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   color: var(--text);
   display: flex;
   justify-content: center;
   align-items: center;
-  /* 确保颜色切换顺滑 */
-  transition: var(--trans-base);
+  background-color: var(--bg-color);
+  transition: var(--trans-smooth);
+  overflow-x: hidden;
 }
 
-/* ===== 背景 ===== */
-.bg{
-  position:fixed;
-  inset:0;
-  z-index:-2;
-  background:center/cover no-repeat;
-  transition: opacity 0.8s ease;
+/* 动态氛围背景层 */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: var(--bg-gradient);
+  transition: var(--trans-smooth);
 }
+
 .bg-overlay{
   position:fixed;
   inset:0;
@@ -63,21 +65,25 @@ body{
   background:var(--bg-overlay);
   backdrop-filter:var(--glass);
   -webkit-backdrop-filter: var(--glass);
-  transition: var(--trans-base); /* 遮罩层切换也要顺滑 */
+  transition: var(--trans-smooth);
 }
 
-/* ===== 布局与组件 ===== */
-.wrap{ width:100%; max-width:1200px; padding:40px; }
-.header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:40px; }
-.brand{ display:flex; gap:16px; align-items:center; }
-.logo{ width:56px;height:56px; border-radius:14px; overflow:hidden; }
-.logo img{width:100%;height:100%;object-fit:cover}
-.title h1{margin:0;font-size:24px}
-.title span{font-size:13px;opacity:.6}
+/* ===== 布局 ===== */
+.wrap{ width:100%; max-width:1100px; padding:40px; position: relative; }
+.header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:50px; }
+.brand{ display:flex; gap:18px; align-items:center; }
+.logo{ 
+  width:60px; height:60px; 
+  border-radius:14px; overflow:hidden; 
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+.logo img{width:100%; height:100%; object-fit:cover}
+.title h1{margin:0; font-size:26px; font-weight: 700; letter-spacing: -0.5px;}
+.title span{font-size:13px; opacity:0.6; font-weight: 400;}
 
 /* 主题按钮 */
 .controls button{
-  width:44px;height:44px;
+  width:46px; height:46px;
   border-radius:50%;
   border:1px solid var(--border);
   background:var(--card);
@@ -85,81 +91,62 @@ body{
   -webkit-backdrop-filter: var(--glass);
   color: var(--text);
   cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), background-color 0.4s, border-color 0.4s;
+  display:flex; align-items:center; justify-content:center;
+  transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
 }
-.controls button:hover{ transform: scale(1.1); }
-.controls button:active{ transform: scale(0.9); }
+.controls button:hover{ transform: scale(1.1); background: var(--icon-bg); }
 
+/* 网格卡片 */
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
-  gap:20px;
+  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  gap:24px;
 }
 
-/* 卡片平滑过渡 */
 .tile{
-  display:flex;
-  align-items:center;
-  gap:16px;
-  padding:16px;
-  border-radius:22px;
+  display:flex; align-items:center; gap:16px;
+  padding:18px; border-radius:24px;
   background:var(--card);
   backdrop-filter:var(--glass);
   -webkit-backdrop-filter: var(--glass);
   border:1px solid var(--border);
   cursor:pointer;
-  transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1), background-color 0.4s, border-color 0.4s;
+  transition: transform 0.3s ease, background-color 0.3s;
 }
-.tile:hover{ transform:translateY(-5px) scale(1.02); background: rgba(255,255,255,0.15); }
+.tile:hover{ 
+  transform: translateY(-6px); 
+  background: var(--icon-bg);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
 
 .icon{
   flex-shrink: 0;
-  width:52px;height:52px;
-  border-radius:12px;
-  background:var(--icon-bg);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border:1px solid var(--icon-border);
-  box-shadow:inset 0 0 0 1px var(--icon-ring);
-  transition: background 0.4s;
+  width:54px; height:54px;
+  border-radius:14px;
+  background: #fff; /* 强制白色底色让图标更亮眼 */
+  display:flex; align-items:center; justify-content:center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
-.icon img{width:30px;height:30px; border-radius: 4px;}
+.icon img{ width:32px; height:32px; object-fit: contain; }
 
-.name{font-size:15px;font-weight:500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.name{ font-size:15px; font-weight:600; }
 
-/* SVG 切换动画 */
-.theme-icon {
-  width: 20px; height: 20px;
-  transition: transform 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 0.3s;
-}
-.theme-out { transform: rotate(90deg) scale(0); opacity: 0; }
+/* SVG 动画 */
+.theme-icon { width: 22px; height: 22px; transition: var(--trans-smooth); }
+.theme-out { transform: rotate(-90deg) scale(0); opacity: 0; }
 
-.bing-info{
-  position:fixed; right:20px; bottom:20px;
-  max-width:280px; font-size:11px; padding:12px;
-  border-radius:16px; background:var(--card);
-  backdrop-filter:var(--glass); -webkit-backdrop-filter: var(--glass);
-  border:1px solid var(--border); opacity:.6;
-  transition: opacity 0.3s, var(--trans-base);
-}
-.bing-info:hover{opacity:1}
-.bing-info a { color: var(--text); text-decoration: none; font-weight: bold; }
 </style>
 </head>
 
 <body>
-<div id="bg" class="bg"></div>
+<div class="bg-layer"></div>
 <div class="bg-overlay"></div>
 
 <div class="wrap">
   <div class="header">
     <div class="brand">
       <div class="logo">
-        <img src="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png" alt="logo">
+        <img src="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png">
       </div>
       <div class="title">
         <h1>Stephcu</h1>
@@ -167,55 +154,48 @@ body{
       </div>
     </div>
     <div class="controls">
-      <button id="themeBtn" aria-label="切换主题"></button>
+      <button id="themeBtn"></button>
     </div>
   </div>
 
-  <div class="grid" id="grid"></div>
-</div>
-
-<div class="bing-info" id="bingInfo" hidden>
-  <strong id="bingTitle"></strong><br>
-  <span id="bingCopyright"></span><br>
-  <a id="bingLink" target="_blank">查看详情 →</a>
+  <div id="grid" class="grid"></div>
 </div>
 
 <script>
-/* 震动反馈 */
-function haptic(){ if(navigator.vibrate) navigator.vibrate(8); }
-
 const root = document.documentElement;
 const themeBtn = document.getElementById("themeBtn");
 
-const sun = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-const moon = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+// 更加高清的图标 API (Google 中国镜像)
+const getIcon = (url) => {
+  const domain = new URL(url).hostname;
+  return `https://www.google.cn/s2/favicons?sz=128&domain=${domain}`;
+};
+
+const sun = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+const moon = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
 
 function applyTheme(t) {
   root.dataset.theme = t;
   themeBtn.innerHTML = (t === "dark" ? moon : sun);
 }
 
-// 初始化主题
+// 初始化
 const saved = localStorage.getItem("theme");
-const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-applyTheme(saved || (systemDark ? "dark" : "light"));
+const hour = new Date().getHours();
+const auto = (hour >= 6 && hour < 18) ? "light" : "dark";
+applyTheme(saved || auto);
 
 themeBtn.onclick = () => {
-  haptic();
-  const current = root.dataset.theme;
-  const target = current === "dark" ? "light" : "dark";
-  
+  const target = root.dataset.theme === "dark" ? "light" : "dark";
   const icon = themeBtn.firstElementChild;
   icon.classList.add("theme-out");
-  
-  // 稍作延迟让图标旋转消失后再切换主题，视觉更连贯
   setTimeout(() => {
     applyTheme(target);
     localStorage.setItem("theme", target);
-  }, 150);
+  }, 200);
 };
 
-/* ===== 网站图标 API 修复 (使用 V2EX 提供的服务，大陆访问稳定) ===== */
+/* ===== 站点列表 ===== */
 const sites = [
   ["Google", "https://www.google.com"],
   ["Bing", "https://www.bing.com"],
@@ -224,7 +204,6 @@ const sites = [
   ["GitHub", "https://github.com"],
   ["YouTube", "https://www.youtube.com"],
   ["Apple Music", "https://music.apple.com"],
-  ["Internet Archive", "https://archive.org"],
   ["Bilibili", "https://www.bilibili.com"],
   ["抖音", "https://www.douyin.com"],
   ["中国知网", "https://www.cnki.net"],
@@ -236,37 +215,16 @@ const sites = [
 
 const grid = document.getElementById("grid");
 sites.forEach(([n, u]) => {
-  const domain = new URL(u).hostname;
-  const t = document.createElement("div");
-  t.className = "tile";
-  t.onclick = () => window.open(u, '_blank');
-  
-  // 修复点：改用大陆访问友好的 favicon 解析服务
-  const iconUrl = `https://favicon.rss.ink/v1/${btoa(u).replace(/=/g, '')}`; 
-  // 或者使用：`https://www.google.cn/s2/favicons?sz=128&domain=${domain}` (google.cn 域名通常可用)
-  // 这里推荐一个更通用的：
-  const fallbackIcon = `https://api.iowen.cn/favicon/${domain}.png`;
-
-  t.innerHTML = `
+  const div = document.createElement("div");
+  div.className = "tile";
+  div.onclick = () => window.open(u, '_blank');
+  div.innerHTML = `
     <div class="icon">
-      <img src="${fallbackIcon}" onerror="this.src='https://favicon.rss.ink/v1/${btoa(u).replace(/=/g, '')}'">
+      <img src="${getIcon(u)}" alt="${n}">
     </div>
-    <div class="name">${n}</div>`;
-  grid.appendChild(t);
-});
-
-/* ===== Bing 背景图 ===== */
-const bg = document.getElementById("bg");
-fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN"))
-.then(r => r.json()).then(str => {
-  const d = JSON.parse(str.contents);
-  const i = d.images[0];
-  const url = `https://www.bing.com${i.url}`;
-  bg.style.backgroundImage = `url(${url})`;
-  document.getElementById("bingTitle").textContent = i.title;
-  document.getElementById("bingCopyright").textContent = i.copyright;
-  document.getElementById("bingLink").href = i.copyrightlink;
-  document.getElementById("bingInfo").hidden = false;
+    <div class="name">${n}</div>
+  `;
+  grid.appendChild(div);
 });
 </script>
 </body>
