@@ -9,40 +9,43 @@
 
 <style>
 :root{
-  --glass: blur(3px) saturate(100%);
+  --glass: blur(12px) saturate(160%); /* 增加饱和度更显高级 */
   --icon-bg: linear-gradient(135deg,#f4f6fb,#ffffff);
   --icon-border: rgba(0,0,0,.12);
   --icon-ring: rgba(255,255,255,.7);
+  --trans-base: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
 }
 
-/* ===== 主题 ===== */
+/* ===== 主题变量 ===== */
 html[data-theme="light"]{
-  --bg-overlay:rgba(255,255,255,.45);
-  --card:rgba(255,255,255,.40);
-  --border:rgba(0,0,0,.08);
-  --text:#0b0c12;
+  --bg-overlay: rgba(255,255,255,0.4);
+  --card: rgba(255,255,255,0.45);
+  --border: rgba(0,0,0,0.06);
+  --text: #1d1d1f;
 }
 html[data-theme="dark"]{
-  --bg-overlay:rgba(4,10,20,.60);
-  --card:rgba(18,26,52,.30);
-  --border:rgba(255,255,255,.14);
-  --text:#eef1f8;
+  --bg-overlay: rgba(0,0,0,0.55);
+  --card: rgba(28,28,30,0.5);
+  --border: rgba(255,255,255,0.1);
+  --text: #f5f5f7;
 
-  --icon-bg: linear-gradient(135deg,#0f1724,#0b1220);
-  --icon-border: rgba(255,255,255,.22);
-  --icon-ring: rgba(0,0,0,.6);
+  --icon-bg: linear-gradient(135deg,#2c2c2e,#1c1c1e);
+  --icon-border: rgba(255,255,255,0.15);
+  --icon-ring: rgba(0,0,0,0.3);
 }
 
 *{box-sizing:border-box}
+
 body{
   margin:0;
   min-height:100vh;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",
-    Inter,Segoe UI,Roboto,Arial;
-  color:var(--text);
-  display:flex;
-  justify-content:center;
-  align-items:center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* 确保颜色切换顺滑 */
+  transition: var(--trans-base);
 }
 
 /* ===== 背景 ===== */
@@ -51,6 +54,7 @@ body{
   inset:0;
   z-index:-2;
   background:center/cover no-repeat;
+  transition: opacity 0.8s ease;
 }
 .bg-overlay{
   position:fixed;
@@ -58,123 +62,92 @@ body{
   z-index:-1;
   background:var(--bg-overlay);
   backdrop-filter:var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  transition: var(--trans-base); /* 遮罩层切换也要顺滑 */
 }
 
-/* ===== 布局 ===== */
-.wrap{
-  width:100%;
-  max-width:1200px;
-  padding:40px;
-}
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:40px;
-}
-.brand{
-  display:flex;
-  gap:16px;
-  align-items:center;
-}
-.logo{
-  width:56px;height:56px;
-  border-radius:16px;
-  overflow:hidden;
-}
+/* ===== 布局与组件 ===== */
+.wrap{ width:100%; max-width:1200px; padding:40px; }
+.header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:40px; }
+.brand{ display:flex; gap:16px; align-items:center; }
+.logo{ width:56px;height:56px; border-radius:14px; overflow:hidden; }
 .logo img{width:100%;height:100%;object-fit:cover}
 .title h1{margin:0;font-size:24px}
-.title span{font-size:13px;opacity:.75}
+.title span{font-size:13px;opacity:.6}
 
-/* ===== 主题按钮（Apple 弹性） ===== */
+/* 主题按钮 */
 .controls button{
   width:44px;height:44px;
   border-radius:50%;
   border:1px solid var(--border);
   background:var(--card);
   backdrop-filter:var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  color: var(--text);
   cursor:pointer;
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:
-    transform .45s cubic-bezier(.34,1.56,.64,1),
-    box-shadow .3s ease;
+  transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), background-color 0.4s, border-color 0.4s;
 }
-.controls button:hover{
-  transform:translateY(-2px) scale(1.06);
-}
-.controls button:active{
-  transform:scale(.92);
-}
+.controls button:hover{ transform: scale(1.1); }
+.controls button:active{ transform: scale(0.9); }
 
-/* ===== 网格 ===== */
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:22px;
+  grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+  gap:20px;
 }
 
-/* ===== 卡片 ===== */
+/* 卡片平滑过渡 */
 .tile{
   display:flex;
   align-items:center;
-  gap:18px;
-  padding:20px;
-  border-radius:26px;
+  gap:16px;
+  padding:16px;
+  border-radius:22px;
   background:var(--card);
   backdrop-filter:var(--glass);
+  -webkit-backdrop-filter: var(--glass);
   border:1px solid var(--border);
   cursor:pointer;
-  transition:.25s;
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1), background-color 0.4s, border-color 0.4s;
 }
-.tile:hover{transform:translateY(-6px)}
+.tile:hover{ transform:translateY(-5px) scale(1.02); background: rgba(255,255,255,0.15); }
 
 .icon{
-  width:64px;height:64px;
-  border-radius:18px;
+  flex-shrink: 0;
+  width:52px;height:52px;
+  border-radius:12px;
   background:var(--icon-bg);
   display:flex;
   align-items:center;
   justify-content:center;
   border:1px solid var(--icon-border);
   box-shadow:inset 0 0 0 1px var(--icon-ring);
+  transition: background 0.4s;
 }
-.icon img{width:36px;height:36px}
-.icon .letter{
-  font-size:26px;
-  font-weight:700;
-  color:#fff;
-}
-.name{font-size:16px;font-weight:600}
+.icon img{width:30px;height:30px; border-radius: 4px;}
 
-/* ===== 主题 SVG 动画 ===== */
-.theme-icon{
-  width:22px;height:22px;
-  transition:
-    transform .45s cubic-bezier(.4,0,.2,1),
-    opacity .25s ease;
-}
-.theme-out{
-  transform:rotate(-20deg) scale(.8);
-  opacity:0;
-}
+.name{font-size:15px;font-weight:500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 
-/* ===== Bing 信息 ===== */
+/* SVG 切换动画 */
+.theme-icon {
+  width: 20px; height: 20px;
+  transition: transform 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 0.3s;
+}
+.theme-out { transform: rotate(90deg) scale(0); opacity: 0; }
+
 .bing-info{
-  position:fixed;
-  right:20px;
-  bottom:20px;
-  max-width:300px;
-  font-size:12px;
-  padding:14px 16px;
-  border-radius:18px;
-  background:var(--card);
-  backdrop-filter:var(--glass);
-  border:1px solid var(--border);
-  opacity:.7;
+  position:fixed; right:20px; bottom:20px;
+  max-width:280px; font-size:11px; padding:12px;
+  border-radius:16px; background:var(--card);
+  backdrop-filter:var(--glass); -webkit-backdrop-filter: var(--glass);
+  border:1px solid var(--border); opacity:.6;
+  transition: opacity 0.3s, var(--trans-base);
 }
 .bing-info:hover{opacity:1}
+.bing-info a { color: var(--text); text-decoration: none; font-weight: bold; }
 </style>
 </head>
 
@@ -186,7 +159,7 @@ body{
   <div class="header">
     <div class="brand">
       <div class="logo">
-        <img src="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png">
+        <img src="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png" alt="logo">
       </div>
       <div class="title">
         <h1>Stephcu</h1>
@@ -204,70 +177,96 @@ body{
 <div class="bing-info" id="bingInfo" hidden>
   <strong id="bingTitle"></strong><br>
   <span id="bingCopyright"></span><br>
-  <a id="bingLink" target="_blank">Bing 来源 →</a>
+  <a id="bingLink" target="_blank">查看详情 →</a>
 </div>
 
 <script>
-/* ===== Haptic（极轻） ===== */
-function haptic(){
-  navigator.vibrate?.(10);
+/* 震动反馈 */
+function haptic(){ if(navigator.vibrate) navigator.vibrate(8); }
+
+const root = document.documentElement;
+const themeBtn = document.getElementById("themeBtn");
+
+const sun = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+const moon = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+
+function applyTheme(t) {
+  root.dataset.theme = t;
+  themeBtn.innerHTML = (t === "dark" ? moon : sun);
 }
 
-/* ===== Apple 风格主题切换 + 时间判断 ===== */
-const root=document.documentElement;
-const themeBtn=document.getElementById("themeBtn");
-const saved=localStorage.getItem("theme");
+// 初始化主题
+const saved = localStorage.getItem("theme");
+const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+applyTheme(saved || (systemDark ? "dark" : "light"));
 
-const sun=`<svg class="theme-icon" viewBox="0 0 24 24" fill="none"
-stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/></svg>`;
-const moon=`<svg class="theme-icon" viewBox="0 0 24 24" fill="none"
-stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1111.2 3z"/></svg>`;
-
-function autoTheme(){
-  const h=new Date().getHours();
-  return h>=6 && h<18 ? "light" : "dark";
-}
-
-function applyTheme(t){
-  root.dataset.theme=t;
-  themeBtn.innerHTML=t==="dark"?moon:sun;
-}
-
-applyTheme(saved||autoTheme());
-
-themeBtn.onclick=()=>{
+themeBtn.onclick = () => {
   haptic();
-  localStorage.setItem("theme","manual");
-  const icon=themeBtn.firstElementChild;
+  const current = root.dataset.theme;
+  const target = current === "dark" ? "light" : "dark";
+  
+  const icon = themeBtn.firstElementChild;
   icon.classList.add("theme-out");
-  setTimeout(()=>{
-    applyTheme(root.dataset.theme==="dark"?"light":"dark");
-  },180);
+  
+  // 稍作延迟让图标旋转消失后再切换主题，视觉更连贯
+  setTimeout(() => {
+    applyTheme(target);
+    localStorage.setItem("theme", target);
+  }, 150);
 };
 
-/* ===== 网站 ===== */
-const sites=[["Google","https://www.google.com"],["Bing","https://www.bing.com"],["ChatGPT","https://chatgpt.com"],["Gemini","https://gemini.google.com"],["GitHub","https://github.com"],["YouTube","https://www.youtube.com"],["Apple Music","https://music.apple.com/cn/browse"],["Internet Archive","https://archive.org"],["Bilibili","https://www.bilibili.com"],["抖音","https://www.douyin.com"],["中国知网","https://www.cnki.net"],["科研工具","https://www.yanweb.top/"],["汉典","https://www.zdic.net"],["识典古籍","https://www.shidianguji.com/zh"],["数字广大","https://webvpn.gzhu.edu.cn/https/77726476706e69737468656265737421fef256913e7e6f4a761dc7a99c406d36d9/up/view?m=up#act=portal/viewhome"]];
+/* ===== 网站图标 API 修复 (使用 V2EX 提供的服务，大陆访问稳定) ===== */
+const sites = [
+  ["Google", "https://www.google.com"],
+  ["Bing", "https://www.bing.com"],
+  ["ChatGPT", "https://chatgpt.com"],
+  ["Gemini", "https://gemini.google.com"],
+  ["GitHub", "https://github.com"],
+  ["YouTube", "https://www.youtube.com"],
+  ["Apple Music", "https://music.apple.com"],
+  ["Internet Archive", "https://archive.org"],
+  ["Bilibili", "https://www.bilibili.com"],
+  ["抖音", "https://www.douyin.com"],
+  ["中国知网", "https://www.cnki.net"],
+  ["科研工具", "https://www.yanweb.top/"],
+  ["汉典", "https://www.zdic.net"],
+  ["识典古籍", "https://www.shidianguji.com/zh"],
+  ["数字广大", "https://webvpn.gzhu.edu.cn"]
+];
 
-const grid=document.getElementById("grid");
-sites.forEach(([n,u])=>{
-  const t=document.createElement("div");
-  t.className="tile";
-  t.onclick=()=>open(u);
-  t.innerHTML=`<div class="icon"><img src="https://www.google.com/s2/favicons?sz=128&domain=${new URL(u).hostname}"></div><div class="name">${n}</div>`;
+const grid = document.getElementById("grid");
+sites.forEach(([n, u]) => {
+  const domain = new URL(u).hostname;
+  const t = document.createElement("div");
+  t.className = "tile";
+  t.onclick = () => window.open(u, '_blank');
+  
+  // 修复点：改用大陆访问友好的 favicon 解析服务
+  const iconUrl = `https://favicon.rss.ink/v1/${btoa(u).replace(/=/g, '')}`; 
+  // 或者使用：`https://www.google.cn/s2/favicons?sz=128&domain=${domain}` (google.cn 域名通常可用)
+  // 这里推荐一个更通用的：
+  const fallbackIcon = `https://api.iowen.cn/favicon/${domain}.png`;
+
+  t.innerHTML = `
+    <div class="icon">
+      <img src="${fallbackIcon}" onerror="this.src='https://favicon.rss.ink/v1/${btoa(u).replace(/=/g, '')}'">
+    </div>
+    <div class="name">${n}</div>`;
   grid.appendChild(t);
 });
 
-/* ===== Bing 每日一图 ===== */
-const bg=document.getElementById("bg");
-bg.style.backgroundImage='url("https://www.bing.com/th?id=OHR.BingWallpaper_EN-US&rf=LaDigue_1920x1080.jpg")';
-fetch("https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN")
-.then(r=>r.json()).then(d=>{
-  const i=d.images[0];
-  bg.style.backgroundImage=`url(https://www.bing.com${i.url})`;
-  bingTitle.textContent=i.title;
-  bingCopyright.textContent=i.copyright;
-  bingLink.href="https://www.bing.com"+i.copyrightlink;
-  bingInfo.hidden=false;
+/* ===== Bing 背景图 ===== */
+const bg = document.getElementById("bg");
+fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN"))
+.then(r => r.json()).then(str => {
+  const d = JSON.parse(str.contents);
+  const i = d.images[0];
+  const url = `https://www.bing.com${i.url}`;
+  bg.style.backgroundImage = `url(${url})`;
+  document.getElementById("bingTitle").textContent = i.title;
+  document.getElementById("bingCopyright").textContent = i.copyright;
+  document.getElementById("bingLink").href = i.copyrightlink;
+  document.getElementById("bingInfo").hidden = false;
 });
 </script>
 </body>
