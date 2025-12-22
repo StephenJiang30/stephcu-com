@@ -9,7 +9,7 @@
 <style>
 :root {
   --trans-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  --glass: blur(20px) saturate(160%);
+  --glass: blur(24px) saturate(160%);
 }
 
 /* ===== 昼夜氛围主题 ===== */
@@ -20,6 +20,7 @@ html[data-theme="light"] {
   --card-hover: rgba(255, 255, 255, 0.7);
   --border: rgba(0, 0, 0, 0.05);
   --text: #1d1d1f;
+  --input-bg: rgba(255, 255, 255, 0.5);
 }
 html[data-theme="dark"] {
   --bg-gradient: linear-gradient(160deg, #0f172a 0%, #020617 100%);
@@ -28,16 +29,18 @@ html[data-theme="dark"] {
   --card-hover: rgba(51, 65, 85, 0.6);
   --border: rgba(255, 255, 255, 0.1);
   --text: #f1f5f9;
+  --input-bg: rgba(255, 255, 255, 0.1);
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; outline: none; }
 body {
   margin: 0; min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   color: var(--text);
-  display: flex; justify-content: center; align-items: center;
+  display: flex; justify-content: center; align-items: flex-start; /* 改为顶部对齐，方便长页面滚动 */
   transition: var(--trans-smooth);
   background: var(--bg-gradient);
+  padding-top: 6vh;
 }
 
 .overlay {
@@ -48,15 +51,45 @@ body {
   transition: var(--trans-smooth);
 }
 
-.wrap { width: 100%; max-width: 1100px; padding: 40px; }
+.wrap { width: 100%; max-width: 1100px; padding: 0 40px 60px; }
 
 /* 头部 */
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
 .brand { display: flex; gap: 16px; align-items: center; }
-.logo { width: 56px; height: 56px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.logo { width: 52px; height: 52px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
 .title h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;}
 .title span { font-size: 13px; opacity: 0.5; }
+
+/* 搜索框设计 */
+.search-container {
+  display: flex; justify-content: center; margin-bottom: 50px;
+}
+.search-box {
+  width: 100%; max-width: 600px; position: relative;
+  display: flex; align-items: center;
+}
+.search-box input {
+  width: 100%; padding: 16px 24px 16px 52px;
+  font-size: 16px; border-radius: 30px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+.search-box input:focus {
+  background: var(--card-hover);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  transform: scale(1.01);
+}
+.search-icon {
+  position: absolute; left: 20px;
+  width: 20px; height: 20px; opacity: 0.5;
+  pointer-events: none;
+}
 
 /* 控制按钮 */
 .controls button {
@@ -100,7 +133,7 @@ body {
 
 .name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* 按钮动画 */
+/* 动画 */
 .theme-icon { width: 22px; height: 22px; transition: 0.4s; }
 .theme-out { transform: scale(0) rotate(-90deg); opacity: 0; }
 </style>
@@ -115,10 +148,17 @@ body {
       <div class="logo"><img src="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png"></div>
       <div class="title">
         <h1>Stephcu</h1>
-        <span>Quick Links · 快速入口</span>
+        <span>Workflow · 效率导航</span>
       </div>
     </div>
     <div class="controls"><button id="themeBtn"></button></div>
+  </div>
+
+  <div class="search-container">
+    <form class="search-box" action="https://www.google.com/search" method="get" target="_blank">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" name="q" placeholder="输入搜索内容..." autocomplete="off">
+    </form>
   </div>
 
   <div id="grid" class="grid"></div>
@@ -128,7 +168,6 @@ body {
 const root = document.documentElement;
 const themeBtn = document.getElementById("themeBtn");
 
-// 采用国内可用的高清图标方案
 const getIcon = (url) => {
   try {
     const domain = new URL(url).hostname;
@@ -158,7 +197,7 @@ themeBtn.onclick = () => {
   }, 200);
 };
 
-/* ===== 完整 15 个站点列表 ===== */
+/* ===== 站点配置 (15个) ===== */
 const sites = [
   ["Google", "https://www.google.com"],
   ["Bing", "https://www.bing.com"],
@@ -182,15 +221,11 @@ sites.forEach(([n, u]) => {
   const div = document.createElement("div");
   div.className = "tile";
   div.onclick = () => window.open(u, '_blank');
-  
-  // 备用图标方案
-  const domain = new URL(u).hostname;
-  const primaryIcon = getIcon(u);
   const fallbackIcon = `https://favicon.rss.ink/v1/${btoa(u).replace(/=/g, '')}`;
 
   div.innerHTML = `
     <div class="icon-box">
-      <img src="${primaryIcon}" onerror="this.src='${fallbackIcon}';this.onerror=null;">
+      <img src="${getIcon(u)}" onerror="this.src='${fallbackIcon}';this.onerror=null;">
     </div>
     <div class="name">${n}</div>
   `;
