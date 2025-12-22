@@ -12,7 +12,7 @@
   --glass: blur(20px) saturate(160%);
 }
 
-/* ===== 氛围主题控制 ===== */
+/* ===== 昼夜氛围主题 ===== */
 html[data-theme="light"] {
   --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   --bg-overlay: rgba(255, 255, 255, 0.25);
@@ -20,7 +20,6 @@ html[data-theme="light"] {
   --card-hover: rgba(255, 255, 255, 0.7);
   --border: rgba(0, 0, 0, 0.05);
   --text: #1d1d1f;
-  --icon-bg: #ffffff;
 }
 html[data-theme="dark"] {
   --bg-gradient: linear-gradient(160deg, #0f172a 0%, #020617 100%);
@@ -29,20 +28,18 @@ html[data-theme="dark"] {
   --card-hover: rgba(51, 65, 85, 0.6);
   --border: rgba(255, 255, 255, 0.1);
   --text: #f1f5f9;
-  --icon-bg: #1e293b;
 }
 
 * { box-sizing: border-box; }
 body {
   margin: 0; min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   color: var(--text);
   display: flex; justify-content: center; align-items: center;
   transition: var(--trans-smooth);
   background: var(--bg-gradient);
 }
 
-/* 遮罩层实现平滑过渡 */
 .overlay {
   position: fixed; inset: 0; z-index: -1;
   background: var(--bg-overlay);
@@ -51,36 +48,36 @@ body {
   transition: var(--trans-smooth);
 }
 
-.wrap { width: 100%; max-width: 1000px; padding: 40px; }
+.wrap { width: 100%; max-width: 1100px; padding: 40px; }
 
-/* 头部设计 */
+/* 头部 */
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
 .brand { display: flex; gap: 16px; align-items: center; }
-.logo { width: 56px; height: 56px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.logo { width: 56px; height: 56px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
-.title h1 { margin: 0; font-size: 24px; font-weight: 700; }
+.title h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;}
 .title span { font-size: 13px; opacity: 0.5; }
 
-/* 主题按钮 */
+/* 控制按钮 */
 .controls button {
-  width: 42px; height: 42px; border-radius: 50%;
+  width: 44px; height: 44px; border-radius: 50%;
   border: 1px solid var(--border); background: var(--card);
   color: var(--text); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: transform 0.3s;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .controls button:hover { transform: scale(1.1); background: var(--card-hover); }
 
-/* 网格布局 */
+/* 网格 */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
 }
 
 .tile {
   display: flex; align-items: center; gap: 14px;
-  padding: 16px; border-radius: 20px;
+  padding: 16px; border-radius: 22px;
   background: var(--card);
   border: 1px solid var(--border);
   cursor: pointer;
@@ -93,18 +90,18 @@ body {
 }
 
 .icon-box {
-  width: 48px; height: 48px; border-radius: 10px;
-  background: white; /* 图标背景固定白色最清晰 */
+  width: 48px; height: 48px; border-radius: 12px;
+  background: white; 
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
-.icon-box img { width: 28px; height: 28px; object-fit: contain; }
+.icon-box img { width: 30px; height: 30px; object-fit: contain; }
 
-.name { font-size: 14px; font-weight: 600; }
+.name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* 动画 */
-.theme-icon { width: 20px; height: 20px; transition: 0.4s; }
+/* 按钮动画 */
+.theme-icon { width: 22px; height: 22px; transition: 0.4s; }
 .theme-out { transform: scale(0) rotate(-90deg); opacity: 0; }
 </style>
 </head>
@@ -131,22 +128,23 @@ body {
 const root = document.documentElement;
 const themeBtn = document.getElementById("themeBtn");
 
-// 国内极速图标方案：使用解析服务镜像
+// 采用国内可用的高清图标方案
 const getIcon = (url) => {
-  const domain = new URL(url).hostname;
-  // 方案1: 采用 iowen 的 API (国内非常快)
-  return `https://api.iowen.cn/favicon/${domain}.png`;
+  try {
+    const domain = new URL(url).hostname;
+    return `https://api.iowen.cn/favicon/${domain}.png`;
+  } catch(e) { return ''; }
 };
 
-const sun = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
-const moon = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+const sun = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+const moon = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
 
 function applyTheme(t) {
   root.dataset.theme = t;
   themeBtn.innerHTML = (t === "dark" ? moon : sun);
 }
 
-// 主题初始化
+// 初始化
 const hour = new Date().getHours();
 const auto = (hour >= 6 && hour < 18) ? "light" : "dark";
 applyTheme(localStorage.getItem("theme") || auto);
@@ -160,7 +158,7 @@ themeBtn.onclick = () => {
   }, 200);
 };
 
-/* ===== 站点配置 ===== */
+/* ===== 完整 15 个站点列表 ===== */
 const sites = [
   ["Google", "https://www.google.com"],
   ["Bing", "https://www.bing.com"],
@@ -168,14 +166,15 @@ const sites = [
   ["Gemini", "https://gemini.google.com"],
   ["GitHub", "https://github.com"],
   ["YouTube", "https://www.youtube.com"],
-  ["Apple Music", "https://music.apple.com"],
+  ["Apple Music", "https://music.apple.com/cn/browse"],
+  ["Internet Archive", "https://archive.org"],
   ["Bilibili", "https://www.bilibili.com"],
   ["抖音", "https://www.douyin.com"],
   ["中国知网", "https://www.cnki.net"],
   ["科研工具", "https://www.yanweb.top/"],
   ["汉典", "https://www.zdic.net"],
   ["识典古籍", "https://www.shidianguji.com/zh"],
-  ["数字广大", "https://webvpn.gzhu.edu.cn"]
+  ["数字广大", "https://webvpn.gzhu.edu.cn/https/77726476706e69737468656265737421fef256913e7e6f4a761dc7a99c406d36d9/up/view?m=up#act=portal/viewhome"]
 ];
 
 const grid = document.getElementById("grid");
@@ -184,8 +183,8 @@ sites.forEach(([n, u]) => {
   div.className = "tile";
   div.onclick = () => window.open(u, '_blank');
   
-  // 增加图片加载失败的备用方案
-  const iconImg = new Image();
+  // 备用图标方案
+  const domain = new URL(u).hostname;
   const primaryIcon = getIcon(u);
   const fallbackIcon = `https://favicon.rss.ink/v1/${btoa(u).replace(/=/g, '')}`;
 
