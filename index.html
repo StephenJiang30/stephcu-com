@@ -4,158 +4,124 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stephcu</title>
-
 <link rel="icon" href="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png">
 
 <style>
-:root{
-  --glass: blur(16px) saturate(180%);
-  --icon-ring: rgba(255,255,255,0.7);
-  --trans-smooth: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+:root {
+  --trans-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --glass: blur(20px) saturate(160%);
 }
 
-/* ===== 主题背景定义 ===== */
-html[data-theme="light"]{
-  --bg-color: #f0f2f5;
-  --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
-  --bg-overlay: rgba(255,255,255,0.3);
-  --card: rgba(255,255,255,0.4);
-  --border: rgba(0,0,0,0.06);
+/* ===== 氛围主题控制 ===== */
+html[data-theme="light"] {
+  --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --bg-overlay: rgba(255, 255, 255, 0.25);
+  --card: rgba(255, 255, 255, 0.4);
+  --card-hover: rgba(255, 255, 255, 0.7);
+  --border: rgba(0, 0, 0, 0.05);
   --text: #1d1d1f;
   --icon-bg: #ffffff;
 }
-html[data-theme="dark"]{
-  --bg-color: #0b0e14;
-  --bg-gradient: linear-gradient(135deg, #1a1c2c 0%, #0d0e14 100%);
-  --bg-overlay: rgba(0,0,0,0.4);
-  --card: rgba(30,30,35,0.4);
-  --border: rgba(255,255,255,0.08);
-  --text: #f5f5f7;
-  --icon-bg: #2c2c2e;
+html[data-theme="dark"] {
+  --bg-gradient: linear-gradient(160deg, #0f172a 0%, #020617 100%);
+  --bg-overlay: rgba(0, 0, 0, 0.3);
+  --card: rgba(30, 41, 59, 0.4);
+  --card-hover: rgba(51, 65, 85, 0.6);
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #f1f5f9;
+  --icon-bg: #1e293b;
 }
 
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  min-height:100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
   color: var(--text);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--bg-color);
+  display: flex; justify-content: center; align-items: center;
   transition: var(--trans-smooth);
-  overflow-x: hidden;
-}
-
-/* 动态氛围背景层 */
-.bg-layer {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
   background: var(--bg-gradient);
-  transition: var(--trans-smooth);
 }
 
-.bg-overlay{
-  position:fixed;
-  inset:0;
-  z-index:-1;
-  background:var(--bg-overlay);
-  backdrop-filter:var(--glass);
+/* 遮罩层实现平滑过渡 */
+.overlay {
+  position: fixed; inset: 0; z-index: -1;
+  background: var(--bg-overlay);
+  backdrop-filter: var(--glass);
   -webkit-backdrop-filter: var(--glass);
   transition: var(--trans-smooth);
 }
 
-/* ===== 布局 ===== */
-.wrap{ width:100%; max-width:1100px; padding:40px; position: relative; }
-.header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:50px; }
-.brand{ display:flex; gap:18px; align-items:center; }
-.logo{ 
-  width:60px; height:60px; 
-  border-radius:14px; overflow:hidden; 
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-}
-.logo img{width:100%; height:100%; object-fit:cover}
-.title h1{margin:0; font-size:26px; font-weight: 700; letter-spacing: -0.5px;}
-.title span{font-size:13px; opacity:0.6; font-weight: 400;}
+.wrap { width: 100%; max-width: 1000px; padding: 40px; }
+
+/* 头部设计 */
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+.brand { display: flex; gap: 16px; align-items: center; }
+.logo { width: 56px; height: 56px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+.title h1 { margin: 0; font-size: 24px; font-weight: 700; }
+.title span { font-size: 13px; opacity: 0.5; }
 
 /* 主题按钮 */
-.controls button{
-  width:46px; height:46px;
-  border-radius:50%;
-  border:1px solid var(--border);
-  background:var(--card);
-  backdrop-filter:var(--glass);
-  -webkit-backdrop-filter: var(--glass);
-  color: var(--text);
-  cursor:pointer;
-  display:flex; align-items:center; justify-content:center;
-  transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+.controls button {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--card);
+  color: var(--text); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.3s;
 }
-.controls button:hover{ transform: scale(1.1); background: var(--icon-bg); }
+.controls button:hover { transform: scale(1.1); background: var(--card-hover); }
 
-/* 网格卡片 */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
-  gap:24px;
+/* 网格布局 */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
 }
 
-.tile{
-  display:flex; align-items:center; gap:16px;
-  padding:18px; border-radius:24px;
-  background:var(--card);
-  backdrop-filter:var(--glass);
-  -webkit-backdrop-filter: var(--glass);
-  border:1px solid var(--border);
-  cursor:pointer;
-  transition: transform 0.3s ease, background-color 0.3s;
+.tile {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px; border-radius: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
-.tile:hover{ 
-  transform: translateY(-6px); 
-  background: var(--icon-bg);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+.tile:hover {
+  transform: translateY(-5px);
+  background: var(--card-hover);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
-.icon{
-  flex-shrink: 0;
-  width:54px; height:54px;
-  border-radius:14px;
-  background: #fff; /* 强制白色底色让图标更亮眼 */
-  display:flex; align-items:center; justify-content:center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+.icon-box {
+  width: 48px; height: 48px; border-radius: 10px;
+  background: white; /* 图标背景固定白色最清晰 */
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
-.icon img{ width:32px; height:32px; object-fit: contain; }
+.icon-box img { width: 28px; height: 28px; object-fit: contain; }
 
-.name{ font-size:15px; font-weight:600; }
+.name { font-size: 14px; font-weight: 600; }
 
-/* SVG 动画 */
-.theme-icon { width: 22px; height: 22px; transition: var(--trans-smooth); }
-.theme-out { transform: rotate(-90deg) scale(0); opacity: 0; }
-
+/* 动画 */
+.theme-icon { width: 20px; height: 20px; transition: 0.4s; }
+.theme-out { transform: scale(0) rotate(-90deg); opacity: 0; }
 </style>
 </head>
 
 <body>
-<div class="bg-layer"></div>
-<div class="bg-overlay"></div>
+<div class="overlay"></div>
 
 <div class="wrap">
   <div class="header">
     <div class="brand">
-      <div class="logo">
-        <img src="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png">
-      </div>
+      <div class="logo"><img src="https://cdn.nba.com/teams/uploads/sites/1610612744/2022/06/gsw-logo-1920.png"></div>
       <div class="title">
         <h1>Stephcu</h1>
         <span>Quick Links · 快速入口</span>
       </div>
     </div>
-    <div class="controls">
-      <button id="themeBtn"></button>
-    </div>
+    <div class="controls"><button id="themeBtn"></button></div>
   </div>
 
   <div id="grid" class="grid"></div>
@@ -165,37 +131,36 @@ body{
 const root = document.documentElement;
 const themeBtn = document.getElementById("themeBtn");
 
-// 更加高清的图标 API (Google 中国镜像)
+// 国内极速图标方案：使用解析服务镜像
 const getIcon = (url) => {
   const domain = new URL(url).hostname;
-  return `https://www.google.cn/s2/favicons?sz=128&domain=${domain}`;
+  // 方案1: 采用 iowen 的 API (国内非常快)
+  return `https://api.iowen.cn/favicon/${domain}.png`;
 };
 
-const sun = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
-const moon = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+const sun = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+const moon = `<svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
 
 function applyTheme(t) {
   root.dataset.theme = t;
   themeBtn.innerHTML = (t === "dark" ? moon : sun);
 }
 
-// 初始化
-const saved = localStorage.getItem("theme");
+// 主题初始化
 const hour = new Date().getHours();
 const auto = (hour >= 6 && hour < 18) ? "light" : "dark";
-applyTheme(saved || auto);
+applyTheme(localStorage.getItem("theme") || auto);
 
 themeBtn.onclick = () => {
   const target = root.dataset.theme === "dark" ? "light" : "dark";
-  const icon = themeBtn.firstElementChild;
-  icon.classList.add("theme-out");
+  themeBtn.firstElementChild.classList.add("theme-out");
   setTimeout(() => {
     applyTheme(target);
     localStorage.setItem("theme", target);
   }, 200);
 };
 
-/* ===== 站点列表 ===== */
+/* ===== 站点配置 ===== */
 const sites = [
   ["Google", "https://www.google.com"],
   ["Bing", "https://www.bing.com"],
@@ -218,9 +183,15 @@ sites.forEach(([n, u]) => {
   const div = document.createElement("div");
   div.className = "tile";
   div.onclick = () => window.open(u, '_blank');
+  
+  // 增加图片加载失败的备用方案
+  const iconImg = new Image();
+  const primaryIcon = getIcon(u);
+  const fallbackIcon = `https://favicon.rss.ink/v1/${btoa(u).replace(/=/g, '')}`;
+
   div.innerHTML = `
-    <div class="icon">
-      <img src="${getIcon(u)}" alt="${n}">
+    <div class="icon-box">
+      <img src="${primaryIcon}" onerror="this.src='${fallbackIcon}';this.onerror=null;">
     </div>
     <div class="name">${n}</div>
   `;
