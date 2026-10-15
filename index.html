@@ -39,6 +39,7 @@ body::before { content: ""; position: fixed; inset: 0; z-index: 1; pointer-event
 body.has-wallpaper::before { background: linear-gradient(180deg, #04132455, #06142950 35%, #06132480); }
 /* Keep this edge layer free of backdrop-filter: Safari samples its edge tint. */
 .chrome-blend { display: none; position: fixed; z-index: 1; inset: 0 0 auto; height: calc(var(--safe-top) + 154px); pointer-events: none; background: linear-gradient(180deg, var(--chrome-color) 0%, var(--chrome-color) 7%, #182d43d9 28%, #182d4366 66%, #182d4300 100%); }
+.chrome-blend-bottom { display: none; position: fixed; z-index: 1; inset: auto 0 0; height: calc(max(var(--safe-bottom), env(safe-area-max-inset-bottom, 0px)) + 120px); pointer-events: none; background: linear-gradient(0deg, var(--chrome-color) 0%, var(--chrome-color) 12%, #182d43e6 36%, #182d4370 68%, #182d4300 100%); }
 main.page { padding-top: var(--safe-top); }
 button, input { font: inherit; }
 button { cursor: pointer; }
@@ -81,6 +82,15 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 .search-section { max-width: 720px; margin: 0 auto; }
 .search-panel { border-radius: 28px; padding: 8px; }
 .engines { display: flex; gap: 3px; align-items: center; padding: 1px 5px 7px; }
+.native-engine-field { display: none; align-items: center; gap: 12px; min-width: 0; }
+.native-engine-field label { color: var(--muted); font-size: 12px; font-weight: 500; white-space: nowrap; }
+html[data-controls="platform"] .native-engine-field { display: inline-flex; padding: 3px 6px; }
+html[data-controls="platform"] .engines .engine-btn { display: none; }
+/* Keep the picker browser-owned. Do not opt into base-select or paint a fake menu. */
+#nativeEngineSelect { -webkit-appearance: menulist; appearance: auto; background: revert; border: revert; border-radius: revert; color: revert; color-scheme: dark; font: 16px var(--font-text); min-width: 132px; min-height: 36px; max-width: 100%; box-shadow: none; }
+html[data-controls="platform"] .search-form input { -webkit-appearance: searchfield; appearance: auto; }
+html[data-controls="platform"] .field input::file-selector-button { all: revert; font: inherit; }
+html[data-controls="platform"] .field input::-webkit-file-upload-button { all: revert; font: inherit; }
 .engine-btn { border: 1px solid transparent; background: transparent; color: #d4e0f0; border-radius: 999px; padding: 7px 13px; min-height: 34px; display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 500; transition: background .2s, color .2s, box-shadow .2s; }
 .engine-btn:hover { color: #fff; background: #ffffff0d; }
 .engine-btn.active { color: #fff; border-color: #ffffff21; background: #eff7ff21; box-shadow: 0 2px 7px #02122b17, inset 0 1px 0 #ffffff20; }
@@ -168,7 +178,7 @@ dialog::backdrop { background: #05112166; -webkit-backdrop-filter: blur(7px); ba
 @media (max-width: 360px) { .page { width: calc(100% - 28px); } .header .btn-label { display: none; } .header .text-btn { width: 38px; padding: 0; } .hero h2 { font-size: 32px; } .tile { padding: 14px; } }
 /* Full-bleed background, safe content. lvh avoids wallpaper jumps as URL bars collapse. */
 .wallpaper { inset: 0 0 auto; height: 100vh; height: 100lvh; min-height: 100%; }
-html[data-device="phone"] .chrome-blend, html[data-device="tablet"] .chrome-blend { display: block; }
+html[data-device="phone"] :is(.chrome-blend, .chrome-blend-bottom), html[data-device="tablet"] :is(.chrome-blend, .chrome-blend-bottom), html[data-os="macos"] :is(.chrome-blend, .chrome-blend-bottom) { display: block; }
 html[data-device="phone"] .search-hint, html[data-device="tablet"] .search-hint { display: none; }
 .title span[data-device-label] { text-transform: none; letter-spacing: .045em; }
 .footer { padding-bottom: max(24px, calc(var(--safe-bottom) + 16px)); }
@@ -177,10 +187,11 @@ dialog { inset: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-
 dialog, .dialog-card { max-height: min(88dvh, calc(var(--visible-height, 100dvh) - var(--safe-top) - var(--safe-bottom) - 24px), 840px); }
 html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + var(--safe-top) + 12px); bottom: auto; margin-block: 0; }
 @media (max-width: 820px), (pointer: coarse) {
-  .chrome-blend { display: block; }
+  .chrome-blend, .chrome-blend-bottom { display: block; }
   .header .text-btn, .round-btn { min-width: 44px; min-height: 44px; }
   .header .refresh-btn { width: 44px; padding: 0; }
   .engine-btn { min-height: 40px; padding: 8px 14px; }
+  #nativeEngineSelect { min-height: 44px; }
   .search-form input, .field input { font-size: 16px; }
   .search-submit { min-height: 44px; min-width: 65px; }
   .primary-btn, .small-btn, .danger-btn { min-height: 44px; }
@@ -239,6 +250,9 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
   const browser = /Edg|EdgiOS|EdgA/.test(ua) ? 'Edge' : /Firefox|FxiOS/.test(ua) ? 'Firefox' : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /Chrome|CriOS/.test(ua) ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : '浏览器';
   root.dataset.device = device;
   root.dataset.os = os;
+  // Native HTML controls can use platform pickers; arbitrary web surfaces cannot
+  // opt into SwiftUI/UIKit/AppKit Liquid Glass through a public web API.
+  root.dataset.controls = os === 'ios' || os === 'macos' ? 'platform' : 'web';
   root.dataset.input = touch ? 'touch' : 'mouse';
   const standalone = window.matchMedia('(display-mode: standalone)');
   function updateDisplay() {
@@ -284,6 +298,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
 <body>
   <div class="wallpaper" id="wallpaper" aria-hidden="true"></div>
   <div class="chrome-blend" aria-hidden="true"></div>
+  <div class="chrome-blend-bottom" aria-hidden="true"></div>
   <main class="page">
     <header class="header">
       <div class="brand">
@@ -312,6 +327,14 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
     <section class="search-section" aria-label="网页搜索">
       <div class="search-panel liquid">
         <div class="engines" role="group" aria-label="选择搜索引擎">
+          <div class="native-engine-field">
+            <label for="nativeEngineSelect">搜索引擎</label>
+            <select id="nativeEngineSelect">
+              <option value="bing">Bing</option>
+              <option value="google">Google</option>
+              <option value="baidu">Baidu</option>
+            </select>
+          </div>
           <button class="engine-btn active" data-engine="bing" type="button" aria-label="使用 Bing 搜索" aria-pressed="true"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADkklEQVR42uWXT2xUVRTGv3Pue7yhYWbakRojqdXAwqExVqIRM5oBA2lc0QVLNbgxajcs3BhduNAmupCSuCUddyxMwLiQQoJTBQIVEhKCMaixTUSNWBxpffPn3XuOizfTFnE6M4WBhSf58t7NfXnn97777rn3kqriXobXrCM/HWac4isAAwq8f3pHz4fdAKBmDjx3MtwN4HijrcBlAPtOPd9z/k4CcLMOdXST4GgIjr7JnSiP3xUAxElvETl6K3esMt59B+yqGuv6Twih5j8OkOo6gFq6t9MQDv9zALXtvWD7SQwDmFDSwrmdVOj6NFzSchQVyCsw+VRRZrdNu9GuFKJbCtNKAFJoXC0HheTIY6eqxeyZcMftORC1UAOUtFC/QkggpHAkecvy5eD5UvGBi3/0rs2Bmq6qRpzbSUeV9C+FQhoQLLDsYNnlLbvZhy79Mtw5QCSr6qZngYKwwrFAWGFZ4FhgWeCTpAOSwhPfzvV2xYG6/RMr7I+Tm9iFAIKA5PGAZH9nAFVZVSvjQt7MCum00JL1sOyQIEHAioAVCdJ9XXMgXjpk1LEcbFivJAhIEZAgIME6ksE9318Z7ooDAHA5t750ZfuG/dZIn2V5JfG3+4J+rC4B+KTwob1tV0KJ1laLf96WKQ29OfdgbdE+W74R4WqPu54dCzL+BoVP0n4plpp0nDx38LeR2qIe8H0vqz7BrSNUS1Hmp09q154c434P2gFAtX0Hdh+e32JD+dgwj3gGUEMQj+D7BPEJlbla0ieBIVxsG8BPI1m+1hrihc9vfGAYrytzUlnBDLAhGMPwvBhAIyQMyp8VNm8ttQ3Qn0umfz0yj0rtv3fNo19XRlzVHTKETY4IRApmqkthjMJ4gOcRkEDFUDjR0TQ8vjcx2b81mNfIwtWWBWtx/wD/ScAxJmyKt2gEIorviMDMYDYwbOB5Bn1bcGZy81Cxsw0JgPv2bjxk0njj95nFMApdKjkQlDY+nUonHlnfJ7V4eIgIoDoGxW0mxEPBvADiV2fe7T/c8cEEAEa/QyYBzKpqEgKoE4hVaKSQmotVEbiyhQ0BKQM2ZNgQsGU6G4X60oWP0j+sbTkGcPRRXLeKXQAWmu6Psfz19faCKr199r3UM62StwQAgE+zmLGKXQpcbXHKgwJTFYuHT7+TGr/ts+G/Y88lzfgqr6nFi4gkGw+BQCoOtuymbKgHTrzcN3XHDqd3K/4Bk+Zwhk2ccMEAAAAASUVORK5CYII=" alt="" />Bing</button>
           <button class="engine-btn" data-engine="google" type="button" aria-label="使用 Google 搜索" aria-pressed="false"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAE0klEQVR42r1XWWzUZRD/zfyXbrvb7aachYLiWijlsBxGDompNCiCGowPaDQRYx9QjDZBE9CQgAEUCQ+NxihKiAYPEmOMhoYjeJEiUAwUQiOBLiChdCmUlnaPdne+8YFt9yzdheo8fZnv+M3MNychQzLGFAB4UlUXACgH4AHgim7fBHAeQAMRHQCwm5lvYjDIGFMqIjtEJKgZkogERGS7MWbCHQOrqkNEtopIRO+QRCQsIluMMXnZaj1RRE7rIJGInDTGlKTDojTgM1V1LzMPT96TK5fR/es+hI8fQ+SiF6ajHVAFF7hh3etBTvlM2CsXwSoel06pVmZ+jIhO9CuAMWaiqtYlg0tLM/zbPkL3wV8A1dubjwj2hyvgXPEmrKIxKUIQ0TxmPpcigDHGqapHmXly/KXQ/lp01WyGhoJZfSPlOeBa9S7sFQuThThFRLOZOQgAHOd07yWDB777Ep2b12UNDgAaDKCn/s8UPjNPU9X1CRYwxpSq6mlmtuI179y8Lu3jNk8Jch6aB2t0MUAEab6MnvpDiDSd7TuTu+QZuKpXA0Tp/CFCRGXMfI4AQER2MPPyeGe7UfU8tDuUcNEaXYz86tXImTU7rWA9xw6jc+tG2OdXIH/lqoEibbtlWVWkqm5jTAsz5/Zu+mveQODnwwkXhpRNhXtTDcjlur3pA36Qw5lJqAeIqIhVdUk8uAa9sJdtg/3B1ti/DR2Ggg1bBwQHkBF41BccABZzNLfHNPDtAiwDx8LLcC69AMpROF9ZCXYXYrBJVRfYooUlxmz7rW+dU9YOW3E+cioX4T+iclu0qsUE8DcmOt6EOYDN1u8LlZv8GaOtXWpHxeSEtzwcV1JvUbg1KaGUDJq6ze0pWdTN+B+pJ5KaxjnaTMTF24iksDo7aAI47SlJqcMW7WSG9Zk8fwq0zdd3oqW9ESNNBEM4vR8ceCd92J1vNaj6PDGFj3KnCOBlAA0Jf174aN96T/dYPNfsQe2F37PW9miTpPAmjraSWQ0c7eFiAoxahjBs2NL1ANZ3zkQIFj459Q2uh9ozBu8KKb4/Ek7g3TOcUZRkASI6wAB2G2OCMa8fj8+ca/BDaHzfwbZQB6r/2ISOns4BwcMCbPixG23+RId7otyWLhXXcrR7/TZ+c9m0FXDYchMu/H3Dixf3vo2DzX/1C362/SJe3b0L9d6eBP5QJ+GpGSk+9DURdfWW4wmq2sgc87Q9Fw9i7eGatEDjC4oxt2gGxuUXgYhwNXgdx682ouHaGSgUVqgEDt/roMit9L3+2VzML7XitQ9Hy3FT36eIyBZmfiseaOeZn1Bz4qs7CjkSF/J8r+HlWeVY/khOsvk/sCxrTUJLpqoOY8wRZp4af3jfP3XYWP8pApHsuiKLLFSVvYCqaU8ngzcw8xwiCqVrSktU9RAzJ2SjlsA1fNywE/sv1cEM1JQCmDVyCqqnv4RJhZ5kcB8zzyMib79tuapON8bsSxYCAK74W7H/Uh3qfafQ1HEJN7o7oAq47S7c6xqD6SMmoXLsXJQW3peuAfER0ePM3JBJt1IiIicHcTA5oaqebKejPBH5UETCdwHcIyLvq2ru3QynJSLyhYj4swD2i8g2Y8z9A0ZLFoK4ACxOGs/dvVUNgLd3PCeiWiLqyuTdfwHdyH6Xk0c2BQAAAABJRU5ErkJggg==" alt="" />Google</button>
           <button class="engine-btn" data-engine="baidu" type="button" aria-label="使用 Baidu 搜索" aria-pressed="false"><img src="data:image/png;base64,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" alt="" />Baidu</button>
@@ -475,6 +498,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
       const searchForm = document.getElementById("searchForm");
       const searchInput = document.getElementById("searchInput");
       const engineBtns = [...document.querySelectorAll(".engine-btn")];
+      const nativeEngineSelect = document.getElementById("nativeEngineSelect");
 
       let sites = loadSites();
       let selectedEngine = storageGet(STORAGE.engine) || "bing";
@@ -1023,6 +1047,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
         selectedEngine = ENGINES[type] ? type : "bing";
         storageSet(STORAGE.engine, selectedEngine);
 
+        nativeEngineSelect.value = selectedEngine;
         searchForm.action = config.action;
         searchInput.name = config.name;
         searchInput.placeholder = config.placeholder;
@@ -1094,6 +1119,8 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
         reader.readAsDataURL(file);
       });
       resetBtn.addEventListener("click", resetSites);
+
+      nativeEngineSelect.addEventListener("change", () => applyEngine(nativeEngineSelect.value));
 
       engineBtns.forEach(button => {
         button.addEventListener("click", () => applyEngine(button.dataset.engine));
