@@ -232,6 +232,23 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) { .glass-optics, .liquid:hover > .glass-optics { background: #1a3049f5; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; } .liquid::after { display: none; } .site-host, .eyebrow, .footer, .search-hint { color: #d5e3f4; } dialog { background: #162a40; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: .01ms !important; } .tile:hover, .tile:active, .search-submit:hover { transform: none; } }
 
+
+/* Search suggestions sit outside the clipped liquid-glass panel. */
+.search-section { position: relative; z-index: 10; }
+.search-shell { position: relative; }
+.search-popover { position: absolute; top: calc(100% + 9px); inset-inline: 0; z-index: 20; text-align: left; border: 1px solid #eaf4ff40; border-radius: 22px; background: #142a40f5; -webkit-backdrop-filter: blur(24px) saturate(130%); backdrop-filter: blur(24px) saturate(130%); box-shadow: 0 18px 50px #020d2455; overflow: hidden; }
+.search-popover[hidden], .search-suggestions[hidden] { display: none; }
+.search-suggestions { list-style: none; padding: 7px; margin: 0; max-height: min(390px, 45vh); max-height: min(390px, 45dvh); overflow-y: auto; overscroll-behavior: contain; }
+.suggestion-option { display: flex; align-items: center; gap: 12px; min-height: 43px; padding: 10px 14px; border-radius: 13px; color: var(--text); font-size: 15px; line-height: 1.45; cursor: pointer; }
+.suggestion-option:hover, .suggestion-option[aria-selected="true"] { background: #e3f0ff1c; }
+.suggestion-icon { flex: none; color: #bfd2e8; font-size: 20px; line-height: 1; }
+.suggestion-text { min-width: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.suggestion-text strong { font-weight: 700; color: #fff; }
+.suggestion-status { padding: 11px 19px; border-top: 1px solid #eaf4ff12; color: #bdcfe3; font-size: 11px; line-height: 1.5; }
+.search-suggestions[hidden] + .suggestion-status { border-top: 0; }
+@media (max-width: 600px), (pointer: coarse) { .suggestion-option { min-height: 46px; } .search-popover { border-radius: 19px; } }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) { .search-popover { background: #142a40; -webkit-backdrop-filter: none; backdrop-filter: none; } }
+
 </style>
 <script>
 /* Local capability detection only; no requests, tracking, or device database. */
@@ -325,6 +342,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
     </section>
 
     <section class="search-section" aria-label="网页搜索">
+      <div class="search-shell">
       <div class="search-panel liquid">
         <div class="engines" role="group" aria-label="选择搜索引擎">
           <div class="native-engine-field">
@@ -341,11 +359,16 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
         </div>
         <form class="search-form" id="searchForm" action="https://www.bing.com/search" method="get" target="_blank">
           <svg class="search-glyph" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4.5 4.5"/></svg>
-          <input type="search" name="q" id="searchInput" enterkeyhint="search" placeholder="用 Bing 搜索网页" autocomplete="off" aria-label="搜索关键词" />
+          <input type="search" name="q" id="searchInput" enterkeyhint="search" placeholder="用 Bing 搜索网页" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="searchSuggestions" aria-haspopup="listbox" spellcheck="false" aria-label="搜索关键词或网址" />
           <button class="search-submit" type="submit">搜索</button>
         </form>
       </div>
-      <p class="search-hint">按 <kbd>/</kbd> 开始搜索</p>
+        <div class="search-popover" id="searchPopover" hidden>
+          <ul class="search-suggestions" id="searchSuggestions" role="listbox" aria-label="搜索联想词" hidden></ul>
+          <div class="suggestion-status" id="suggestionStatus" role="status" aria-live="polite" aria-atomic="true"></div>
+        </div>
+      </div>
+      <p class="search-hint">按 <kbd>/</kbd> 开始搜索 · ↑↓ 选择联想词 · 输入网址后回车直达</p>
     </section>
 
     <section class="links-section" aria-labelledby="siteTitle">
@@ -1057,6 +1080,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
           button.classList.toggle("active", active);
           button.setAttribute("aria-pressed", String(active));
         });
+        scheduleSuggestions();
       }
 
       function showToast(message) {
@@ -1065,6 +1089,259 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
         window.clearTimeout(showToast.timer);
         showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 1800);
       }
+
+
+      // Engine-native JSONP endpoints work in a standalone HTML file without a proxy.
+      const searchShell = document.querySelector(".search-shell");
+      const searchPopover = document.getElementById("searchPopover");
+      const suggestionList = document.getElementById("searchSuggestions");
+      const suggestionStatus = document.getElementById("suggestionStatus");
+      const searchSubmit = searchForm.querySelector('[type="submit"]');
+      const suggestionCache = new Map();
+      let suggestionItems = [];
+      let activeSuggestion = -1;
+      let suggestionTimer = 0;
+      let suggestionVersion = 0;
+      let suggestionController = null;
+      let jsonpSequence = 0;
+      let composingSearch = false;
+
+      // Require a full host, rather than treating every nonempty string as a URL.
+      function directUrl(value) {
+        const text = String(value || "").trim();
+        if (!text || /[\s\\\u0000-\u001f\u007f]/u.test(text)) return null;
+        const explicit = /^https?:\/\//i.test(text);
+        const rest = text.replace(/^https?:\/\//i, "").replace(/^\/\//, "");
+        const authority = rest.split(/[/?#]/, 1)[0];
+        if (!authority || authority.includes("@")) return null;
+        const match = authority.match(/^(\[[0-9a-f:.]+\]|[^:]+)(?::(\d{1,5}))?$/i);
+        if (!match || (match[2] && (+match[2] < 1 || +match[2] > 65535))) return null;
+        const rawHost = match[1];
+        const ipv4 = /^(?:0|[1-9]\d{0,2})(?:\.(?:0|[1-9]\d{0,2})){3}$/.test(rawHost)
+          && rawHost.split(".").every(part => +part <= 255);
+        if (/^[\d.]+$/.test(rawHost) && !ipv4) return null;
+        try {
+          const local = ipv4 || rawHost.startsWith("[") || /^localhost$/i.test(rawHost) || /\.localhost$/i.test(rawHost);
+          const url = new URL(explicit ? text : `${local ? "http" : "https"}://${rest}`);
+          if (!/^https?:$/.test(url.protocol) || url.username || url.password) return null;
+          const host = url.hostname;
+          // Reject shorthand/hexadecimal IPv4 that the URL parser would silently rewrite.
+          if (/^\d+\.\d+\.\d+\.\d+$/.test(host) && !ipv4) return null;
+          if (!local) {
+            if (host.length > 253) return null;
+            const labels = host.split(".");
+            if (!labels.every(label => /^[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?$/i.test(label))) return null;
+            if (!explicit && (labels.length < 2 || !/^(?:[a-z]{2,63}|xn--[a-z\d-]+)$/i.test(labels.at(-1)))) return null;
+          }
+          return url.href;
+        } catch { return null; }
+      }
+
+      function syncSearchButton() {
+        searchSubmit.textContent = directUrl(searchInput.value) ? "前往" : "搜索";
+      }
+
+      function closeSuggestions() {
+        window.clearTimeout(suggestionTimer);
+        suggestionVersion++;
+        suggestionController?.abort();
+        suggestionController = null;
+        suggestionItems = [];
+        activeSuggestion = -1;
+        suggestionList.replaceChildren();
+        suggestionList.hidden = true;
+        searchPopover.hidden = true;
+        searchInput.setAttribute("aria-expanded", "false");
+        searchInput.removeAttribute("aria-activedescendant");
+        searchInput.removeAttribute("aria-busy");
+      }
+
+      function suggestionEndpoint(engine, query, callback) {
+        let url;
+        if (engine === "baidu") {
+          url = new URL("https://suggestion.baidu.com/su");
+          url.search = new URLSearchParams({ wd: query, cb: callback, ie: "utf-8" });
+        } else if (engine === "google") {
+          url = new URL("https://suggestqueries.google.com/complete/search");
+          url.search = new URLSearchParams({ client: "chrome", hl: "zh-CN", q: query, callback, ie: "UTF-8", oe: "UTF-8" });
+        } else {
+          url = new URL("https://api.bing.com/osjson.aspx");
+          url.search = new URLSearchParams({ query, market: "zh-CN", JsonType: "callback", JsonCallback: callback });
+        }
+        return url.href;
+      }
+
+      function requestSuggestions(engine, query, signal) {
+        return new Promise((resolve, reject) => {
+          const callback = `__stephcuSuggest_${Date.now()}_${++jsonpSequence}`;
+          const script = document.createElement("script");
+          let settled = false;
+          let timeout;
+          const finish = (error, data) => {
+            if (settled) return;
+            settled = true;
+            window.clearTimeout(timeout);
+            signal.removeEventListener("abort", abort);
+            script.remove();
+            script.onerror = script.onload = null;
+            // A cancelled script may still arrive; leave a short-lived harmless callback.
+            window[callback] = () => {};
+            window.setTimeout(() => { delete window[callback]; }, 60000);
+            if (error) reject(error); else resolve(data);
+          };
+          const abort = () => finish(new DOMException("Aborted", "AbortError"));
+          window[callback] = data => finish(null, data);
+          script.async = true;
+          script.charset = "utf-8";
+          script.referrerPolicy = "no-referrer";
+          script.src = suggestionEndpoint(engine, query, callback);
+          script.onerror = () => finish(new Error("联想接口不可用"));
+          script.onload = () => { if (!settled) finish(new Error("联想接口返回格式异常")); };
+          timeout = window.setTimeout(() => finish(new Error("联想请求超时")), 6000);
+          signal.addEventListener("abort", abort, { once: true });
+          if (signal.aborted) abort(); else document.head.appendChild(script);
+        });
+      }
+
+      function setSuggestionStatus(message) {
+        suggestionStatus.textContent = message;
+        searchPopover.hidden = false;
+      }
+
+      function renderSuggestions(items, query, engine) {
+        const names = { bing: "Bing", google: "Google", baidu: "百度" };
+        suggestionItems = items;
+        activeSuggestion = -1;
+        searchInput.removeAttribute("aria-activedescendant");
+        suggestionList.replaceChildren();
+        items.forEach((text, index) => {
+          const option = document.createElement("li");
+          option.id = `search-suggestion-${index}`;
+          option.className = "suggestion-option";
+          option.setAttribute("role", "option");
+          option.setAttribute("aria-selected", "false");
+          const icon = document.createElement("span");
+          icon.className = "suggestion-icon";
+          icon.setAttribute("aria-hidden", "true");
+          icon.textContent = "⌕";
+          const label = document.createElement("span");
+          label.className = "suggestion-text";
+          const at = text.toLocaleLowerCase().indexOf(query.toLocaleLowerCase());
+          if (at >= 0) {
+            const strong = document.createElement("strong");
+            strong.textContent = text.slice(at, at + query.length);
+            label.append(document.createTextNode(text.slice(0, at)), strong, document.createTextNode(text.slice(at + query.length)));
+          } else label.textContent = text;
+          option.append(icon, label);
+          // Keep keyboard focus in the combobox; click also works after touch scrolling.
+          option.addEventListener("mousedown", event => event.preventDefault());
+          option.addEventListener("click", () => {
+            searchInput.value = text;
+            closeSuggestions();
+            syncSearchButton();
+            searchForm.requestSubmit();
+          });
+          suggestionList.appendChild(option);
+        });
+        suggestionList.hidden = !items.length;
+        searchInput.setAttribute("aria-expanded", String(items.length > 0));
+        setSuggestionStatus(items.length ? `${names[engine]} 联想 · ↑↓ 选择，回车打开` : `${names[engine]} 暂无联想词，可直接搜索`);
+      }
+
+      function scheduleSuggestions() {
+        closeSuggestions();
+        syncSearchButton();
+        const query = searchInput.value.trim();
+        if (composingSearch || document.activeElement !== searchInput || !query || query.length > 160 || directUrl(query)) return;
+        // Do not send partially entered addresses or email addresses to the provider.
+        if (/^(?:[a-z][a-z\d+.-]*:\/\/|\/\/)/i.test(query) || query.includes("@")) return;
+        const engine = selectedEngine;
+        const version = suggestionVersion;
+        const cacheKey = `${engine}:${query}`;
+        const cached = suggestionCache.get(cacheKey);
+        if (cached && Date.now() - cached.time < 300000) {
+          renderSuggestions(cached.items, query, engine);
+          return;
+        }
+        suggestionTimer = window.setTimeout(async () => {
+          const controller = new AbortController();
+          suggestionController = controller;
+          searchInput.setAttribute("aria-busy", "true");
+          setSuggestionStatus("正在获取联想词…");
+          try {
+            const data = await requestSuggestions(engine, query, controller.signal);
+            if (version !== suggestionVersion || engine !== selectedEngine || query !== searchInput.value.trim() || document.activeElement !== searchInput) return;
+            const raw = engine === "baidu" ? data?.s : data?.[1];
+            if (!Array.isArray(raw)) throw new Error("无效的联想数据");
+            const items = [...new Set(raw.filter(value => typeof value === "string").map(value => value.trim()).filter(value => value && value.length <= 200))].slice(0, 10);
+            suggestionCache.set(cacheKey, { time: Date.now(), items });
+            if (suggestionCache.size > 60) suggestionCache.delete(suggestionCache.keys().next().value);
+            renderSuggestions(items, query, engine);
+          } catch (error) {
+            if (version !== suggestionVersion || error.name === "AbortError") return;
+            setSuggestionStatus("联想词暂不可用，按回车仍可搜索");
+          } finally {
+            if (version === suggestionVersion) {
+              searchInput.removeAttribute("aria-busy");
+              suggestionController = null;
+            }
+          }
+        }, 220);
+      }
+
+      function selectSuggestion(index) {
+        activeSuggestion = index;
+        [...suggestionList.children].forEach((option, i) => option.setAttribute("aria-selected", String(i === index)));
+        if (index < 0) searchInput.removeAttribute("aria-activedescendant");
+        else {
+          const option = suggestionList.children[index];
+          searchInput.setAttribute("aria-activedescendant", option.id);
+          option.scrollIntoView({ block: "nearest" });
+        }
+      }
+
+      searchInput.addEventListener("input", scheduleSuggestions);
+      searchInput.addEventListener("focus", scheduleSuggestions);
+      searchInput.addEventListener("compositionstart", () => { composingSearch = true; closeSuggestions(); });
+      searchInput.addEventListener("compositionend", () => { composingSearch = false; scheduleSuggestions(); });
+      searchInput.addEventListener("keydown", event => {
+        if (composingSearch || event.isComposing || event.keyCode === 229) return;
+        if (event.key === "Escape") { closeSuggestions(); return; }
+        if (event.key === "Tab") { closeSuggestions(); return; }
+        if ((event.key === "ArrowDown" || event.key === "ArrowUp") && suggestionItems.length) {
+          event.preventDefault();
+          const count = suggestionItems.length;
+          selectSuggestion(event.key === "ArrowDown" ? (activeSuggestion + 1) % count : (activeSuggestion <= 0 ? count - 1 : activeSuggestion - 1));
+        }
+      });
+      searchShell.addEventListener("focusout", () => {
+        // Allow an engine picker/button to receive focus before deciding to dismiss.
+        window.setTimeout(() => { if (!searchShell.contains(document.activeElement)) closeSuggestions(); }, 0);
+      });
+      document.addEventListener("pointerdown", event => { if (!searchShell.contains(event.target)) closeSuggestions(); });
+      document.addEventListener("visibilitychange", () => { if (document.hidden) closeSuggestions(); });
+
+      searchForm.addEventListener("submit", event => {
+        if (composingSearch) { event.preventDefault(); return; }
+        if (activeSuggestion >= 0) searchInput.value = suggestionItems[activeSuggestion];
+        const query = searchInput.value.trim();
+        searchInput.value = query;
+        closeSuggestions();
+        syncSearchButton();
+        if (!query) { event.preventDefault(); searchInput.focus(); return; }
+        const destination = directUrl(query);
+        if (destination) {
+          event.preventDefault();
+          // Preserve the original page's new-tab behavior without adding ?q= to the URL.
+          const link = document.createElement("a");
+          link.href = destination;
+          link.target = searchForm.target || "_self";
+          link.rel = "noopener noreferrer";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        }
+      });
 
       editSitesBtn.addEventListener("click", () => {
         siteDialog.showModal();
