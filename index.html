@@ -251,6 +251,8 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
 
 /* Wallpaper preferences follow the existing glass palette. */
 #heroTitle em { margin-left: 0; }
+.ip-location-link { display: inline-flex; border-radius: 4px; }
+.ip-location-link:focus-visible { outline: 2px solid #c2deff; outline-offset: 5px; }
 .wallpaper-source-list legend { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #wallpaperDialog { width: min(580px, calc(100% - 32px)); }
 .wallpaper-intro { margin: 0 0 18px; font-size: 13px; color: #b5c6dd; }
@@ -262,6 +264,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
 .wallpaper-source-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .source-swatch { width: 54px; height: 48px; flex: none; border-radius: 11px; border: 1px solid #ffffff25; box-shadow: inset 0 1px 0 #ffffff20; }
 .swatch-bing { background: linear-gradient(150deg, transparent 45%, #385d61 46% 64%, #1e414b 65%), linear-gradient(#86bdce, #c2d8d6); }
+.swatch-spotlight { background: linear-gradient(150deg, transparent 45%, #526c7a 46% 63%, #183f55 64%), linear-gradient(#83c5dc 50%, #94c8bd); }
 .swatch-unsplash { background: linear-gradient(35deg, #163f43 30%, transparent 31%), linear-gradient(145deg, transparent 40%, #657e8d 41% 62%, #d4dee1 63% 68%, #859fa7 69%), #b9cfd5; }
 .swatch-picsum { background: linear-gradient(160deg, transparent 50%, #7d7662 51% 70%, #444d40 71%), linear-gradient(#d6b89c, #b3bbc0); }
 .swatch-nasa { background: radial-gradient(ellipse at 60% 65%, #b887a6 0, #795f9666 27%, transparent 55%), radial-gradient(circle at 30% 30%, #fff 1%, transparent 3%), radial-gradient(circle at 73% 34%, #fff 1%, transparent 3%), #18213f; }
@@ -420,7 +423,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
       <div class="grid" id="grid"></div>
     </section>
   </main>
-  <footer class="footer page"><span class="footer-identity"><span>Stephcu</span><span class="ip-location" id="ipLocation" role="status" aria-live="polite">正在获取 IP…</span></span><span><span id="wallpaperCredit">背景选用 Bing 每日一图</span> · 偏好保存在当前浏览器</span></footer>
+  <footer class="footer page"><span class="footer-identity"><span>Stephcu</span><a class="ip-location-link" href="https://ip.skk.moe/" target="_blank" rel="noopener noreferrer" title="在新标签页打开 IP 查询"><span class="ip-location" id="ipLocation" role="status" aria-live="polite">正在获取 IP…</span></a></span><span><span id="wallpaperCredit">背景选用 Windows Spotlight</span> · 偏好保存在当前浏览器</span></footer>
 
   <dialog id="wallpaperDialog" aria-labelledby="wallpaperDialogTitle" aria-describedby="wallpaperPreferenceStatus">
     <div class="dialog-card">
@@ -432,7 +435,8 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
         <p class="wallpaper-intro">为每一次打开，换一种心情。</p>
         <fieldset class="wallpaper-source-list">
           <legend class="sr-only">背景图片源</legend>
-          <label class="wallpaper-source-option"><input type="radio" name="wallpaperSource" value="bing" checked /><span class="source-swatch swatch-bing" aria-hidden="true"></span><span class="source-copy"><strong>Bing 每日一图 <small>默认</small></strong><span>每日一幅世界风景，跟随今天更新</span></span><span class="source-check" aria-hidden="true">✓</span></label>
+          <label class="wallpaper-source-option"><input type="radio" name="wallpaperSource" value="spotlight" checked /><span class="source-swatch swatch-spotlight" aria-hidden="true"></span><span class="source-copy"><strong>Windows Spotlight <small>默认</small></strong><span>微软聚焦精选风景，可随心换一张</span></span><span class="source-check" aria-hidden="true">✓</span></label>
+          <label class="wallpaper-source-option"><input type="radio" name="wallpaperSource" value="bing" /><span class="source-swatch swatch-bing" aria-hidden="true"></span><span class="source-copy"><strong>Bing 每日一图</strong><span>每日一幅世界风景，跟随今天更新</span></span><span class="source-check" aria-hidden="true">✓</span></label>
           <label class="wallpaper-source-option"><input type="radio" name="wallpaperSource" value="unsplash" /><span class="source-swatch swatch-unsplash" aria-hidden="true"></span><span class="source-copy"><strong>Unsplash 精选风景</strong><span>精选山野、湖泊与森林，每日轮换</span></span><span class="source-check" aria-hidden="true">✓</span></label>
           <label class="wallpaper-source-option"><input type="radio" name="wallpaperSource" value="picsum" /><span class="source-swatch swatch-picsum" aria-hidden="true"></span><span class="source-copy"><strong>Lorem Picsum 每日摄影</strong><span>每天一张随机摄影，让风景多点惊喜</span></span><span class="source-check" aria-hidden="true">✓</span></label>
           <label class="wallpaper-source-option"><input type="radio" name="wallpaperSource" value="nasa" /><span class="source-swatch swatch-nasa" aria-hidden="true"></span><span class="source-copy"><strong>NASA 精选宇宙</strong><span>精选星云与星系，在深空之间轮换</span></span><span class="source-check" aria-hidden="true">✓</span></label>
@@ -591,6 +595,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
       let selectedEngine = storageGet(STORAGE.engine) || "bing";
       let draggedId = null;
       const WALLPAPER_SOURCES = {
+        spotlight: { name: 'Windows Spotlight', link: 'https://peapix.com/spotlight' },
         bing: { name: 'Bing 每日一图', link: 'https://www.bing.com/' },
         unsplash: { name: 'Unsplash 精选风景', link: 'https://unsplash.com/' },
         picsum: { name: 'Lorem Picsum 每日摄影', link: 'https://picsum.photos/' },
@@ -616,6 +621,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
       const wallpaperCredit = document.getElementById('wallpaperCredit');
       const wallpaperPreferenceStatus = document.getElementById('wallpaperPreferenceStatus');
       let wallpaperSettings = readWallpaperSettings();
+      let spotlightFeed = null;
       let wallpaperDay = "";
       let wallpaperPendingDay = "";
       let wallpaperLastAttempt = 0;
@@ -652,9 +658,9 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
       function readWallpaperSettings() {
         let value;
         try { value = JSON.parse(storageGet(STORAGE.wallpaper)); } catch {}
-        const source = Object.hasOwn(WALLPAPER_SOURCES, value?.source || '') ? value.source : 'bing';
+        const source = Object.hasOwn(WALLPAPER_SOURCES, value?.source || '') ? value.source : 'spotlight';
         const offsets = {};
-        for (const id of ['unsplash', 'picsum', 'nasa']) {
+        for (const id of ['spotlight', 'unsplash', 'picsum', 'nasa']) {
           const offset = value?.offsets?.[id];
           offsets[id] = Number.isInteger(offset) && offset >= 0 && offset < 1000000 ? offset : 0;
         }
@@ -693,6 +699,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
           wallpaperCredit.append(link);
         } else wallpaperCredit.append(document.createTextNode(config.name));
         if (id === 'nasa' && state === 'ready') wallpaperCredit.append(document.createTextNode(' · NASA / ESA / CSA / STScI / JPL-Caltech'));
+        if (id === 'spotlight' && state === 'ready') wallpaperCredit.append(document.createTextNode(' · Peapix'));
         if (state === 'fallback') wallpaperCredit.append(document.createTextNode(' · 暂不可用，显示渐变'));
       }
 
@@ -714,6 +721,31 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
             return await loadWallpaperImage(url.href, controller.signal);
           } finally { clearTimeout(timeout); }
         }
+      }
+
+      async function loadSpotlightWallpaper(offset, controller) {
+        // Peapix exposes the Spotlight collection with browser CORS support.
+        if (!spotlightFeed || Date.now() - spotlightFeed.time >= 1800000) {
+          const timeout = setTimeout(() => controller.abort(), 6500);
+          try {
+            const response = await fetch('https://peapix.com/spotlight/feed?n=8', {
+              signal: controller.signal, credentials: 'omit', referrerPolicy: 'no-referrer'
+            });
+            if (!response.ok) throw new Error('Spotlight feed unavailable');
+            const data = await response.json();
+            if (!Array.isArray(data)) throw new Error('Invalid Spotlight feed');
+            const photos = data.map(photo => {
+              try {
+                const url = new URL(photo.fullUrl);
+                return url.protocol === 'https:' && url.hostname === 'img.peapix.com' ? url.href : null;
+              } catch { return null; }
+            }).filter(Boolean);
+            if (!photos.length) throw new Error('Empty Spotlight feed');
+            if (controller.signal.aborted) throw new Error('Aborted');
+            spotlightFeed = { time: Date.now(), photos };
+          } finally { clearTimeout(timeout); }
+        }
+        return loadWallpaperImage(spotlightFeed.photos[offset % spotlightFeed.photos.length], controller.signal);
       }
 
       async function refreshWallpaper(force = false) {
@@ -755,7 +787,8 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
         refreshWallpaperBtn.disabled = true;
         try {
           let image;
-          if (id === 'bing') image = await loadBingWallpaper(day, Date.now(), controller);
+          if (id === 'spotlight') image = await loadSpotlightWallpaper(offset, controller);
+          else if (id === 'bing') image = await loadBingWallpaper(day, Date.now(), controller);
           else if (id === 'picsum') {
             const seed = encodeURIComponent(`stephcu-${day}-${offset}`);
             image = await loadWallpaperImage(`https://picsum.photos/seed/${seed}/2560/1440`, controller.signal);
