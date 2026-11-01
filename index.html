@@ -423,7 +423,7 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
       <div class="grid" id="grid"></div>
     </section>
   </main>
-  <footer class="footer page"><span class="footer-identity"><span>Stephcu</span><a class="ip-location-link" href="https://ip.skk.moe/" target="_blank" rel="noopener noreferrer" title="在新标签页打开 IP 查询"><span class="ip-location" id="ipLocation" role="status" aria-live="polite">正在获取 IP…</span></a></span><span><span id="wallpaperCredit">背景选用 Windows Spotlight</span> · 偏好保存在当前浏览器</span></footer>
+  <footer class="footer page"><span class="footer-identity"><span>Stephcu</span><span class="ip-location" id="ipLocation" role="status" aria-live="polite">正在获取 IP…</span></span><span><span id="wallpaperCredit">背景选用 Windows Spotlight</span> · 偏好保存在当前浏览器</span></footer>
 
   <dialog id="wallpaperDialog" aria-labelledby="wallpaperDialogTitle" aria-describedby="wallpaperPreferenceStatus">
     <div class="dialog-card">
@@ -1237,8 +1237,12 @@ html[data-keyboard="open"] dialog { top: calc(var(--visible-offset-top, 0px) + v
         flag.textContent = flagFor(code);
         const region = document.createElement("span");
         region.textContent = regionName;
-        const address = document.createElement("span");
-        address.className = "ip-value";
+        const address = document.createElement("a");
+        address.className = "ip-value ip-location-link";
+        address.href = "https://ip.skk.moe/";
+        address.target = "_blank";
+        address.rel = "noopener noreferrer";
+        address.title = "在新标签页打开 IP 查询";
         address.textContent = ip;
         ipLocation.append(flag, region, address);
         ipLocation.title = `公网 IP：${ip}`;
